@@ -1,19 +1,22 @@
 package com.taobao.arthas.core.shell.command.internal;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
 import com.taobao.arthas.core.command.basic1000.GrepCommand;
 import com.taobao.arthas.core.shell.cli.CliToken;
+import com.taobao.arthas.core.shell.handlers.GrepHitLine;
+import com.taobao.arthas.core.shell.handlers.MyLineParser;
 import com.taobao.arthas.core.util.StringUtils;
 import com.taobao.middleware.cli.CLI;
 import com.taobao.middleware.cli.CommandLine;
 import com.taobao.middleware.cli.annotations.CLIConfigurator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
  * @author beiwei30 on 12/12/2016.
  */
-public class GrepHandler extends StdoutHandler {
+public class GrepHandler extends StdoutHandler implements StatisticsFunction {
     public static final String NAME = "grep";
 
     private String keyword;
@@ -48,6 +51,15 @@ public class GrepHandler extends StdoutHandler {
 
     private static CLI cli = null;
 
+    /**
+     * 行缓存
+     */
+    private GrepHitLine grepHitLine;
+
+    private MyLineParser myLineParser;
+
+    public static final String LINE_SPLIT="\n";
+
     public static StdoutHandler inject(List<CliToken> tokens) {
         List<String> args = StdoutHandler.parseArgs(tokens, NAME);
 
@@ -62,32 +74,23 @@ public class GrepHandler extends StdoutHandler {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
-
-        int context = grepCommand.getContext();
         int beforeLines = grepCommand.getBeforeLines();
         int afterLines = grepCommand.getAfterLines();
-        if (context > 0) {
-            if (beforeLines < 1) {
-                beforeLines = context;
-            }
-            if (afterLines < 1) {
-                afterLines = context;
-            }
-        }
+
         return new GrepHandler(grepCommand.getPattern(), grepCommand.isIgnoreCase(), grepCommand.isInvertMatch(),
                         grepCommand.isRegEx(), grepCommand.isShowLineNumber(), grepCommand.isTrimEnd(), beforeLines,
                         afterLines, grepCommand.getMaxCount());
     }
 
-    GrepHandler(String keyword, boolean ignoreCase, boolean invertMatch, boolean regexpMode,
+    public GrepHandler(String keyword, boolean ignoreCase, boolean invertMatch, boolean regexpMode,
                     boolean showLineNumber, boolean trimEnd, int beforeLines, int afterLines, int maxCount) {
         this.ignoreCase = ignoreCase;
         this.invertMatch = invertMatch;
         this.showLineNumber = showLineNumber;
         this.trimEnd = trimEnd;
-        this.beforeLines = beforeLines > 0 ? beforeLines : 0;
-        this.afterLines = afterLines > 0 ? afterLines : 0;
-        this.maxCount = maxCount > 0 ? maxCount : 0;
+        this.beforeLines = Math.max(beforeLines, 0);
+        this.afterLines = Math.max(afterLines, 0);
+        this.maxCount = Math.max(maxCount, 0);
         if (regexpMode) {
             final int flags = ignoreCase ? Pattern.CASE_INSENSITIVE : 0;
             this.pattern = Pattern.compile(keyword, flags);
@@ -95,80 +98,93 @@ public class GrepHandler extends StdoutHandler {
             this.pattern = null;
         }
         this.keyword = ignoreCase ? keyword.toLowerCase() : keyword;
+        this.grepHitLine = new GrepHitLine(true, this.beforeLines, this.afterLines);
+        this.myLineParser = new MyLineParser();
+    }
+
+
+    public String apply(String input) {
+        return doApply(input,false);
+    }
+
+    private String doApply(String input, boolean end) {
+        StringBuilder output = new StringBuilder();
+        List<String> lines;
+        if (end) {
+            String line = this.myLineParser.end();
+            if (StringUtils.isEmpty(line)) {
+                return null;
+            }
+            lines = new ArrayList<>();
+            lines.add(line);
+        } else {
+            lines = this.myLineParser.handle(input);
+        }
+        for (String line : lines) {
+            String match = match(line);
+            if (match != null) {
+                output.append(match);
+            }
+        }
+        if (output.length()==0) {
+            return null;
+        }
+        return output.toString();
+    }
+
+
+    private String match(String line) {
+        if (LINE_SPLIT.equals(line)) {
+            return null;
+        }
+        String re = null;
+        boolean match;
+        if (pattern == null) {
+            match = (ignoreCase ? line.toLowerCase() : line).contains(keyword);
+            if (match && !invertMatch) {
+                String replaceStr = "\033[31m" + keyword + "\033[0m";
+                line = line.replace(keyword, replaceStr);
+            }
+        } else {
+            match = pattern.matcher(line).find();
+            if (match && !invertMatch) {
+                String replaceStr = "\033[31m$0\033[0m";
+                line = line.replaceAll(pattern.pattern(), replaceStr);
+            }
+        }
+        if (invertMatch != match) {
+            boolean b = grepHitLine.setHit(line);
+            if (!b) {
+                String s = grepHitLine.toString();
+                if (s!=null) {
+                    re = grepHitLine.toString();
+                }
+                grepHitLine = new GrepHitLine(line, this.afterLines);
+            }
+        } else {
+            boolean add = grepHitLine.add(line);
+            if (add) {
+                String s = grepHitLine.toString();
+                if (s!=null) {
+                    re = grepHitLine.toString();
+                }
+                grepHitLine = new GrepHitLine(this.beforeLines, this.afterLines);
+            }
+        }
+        return re;
     }
 
     @Override
-    public String apply(String input) {
-        StringBuilder output = new StringBuilder();
-        String[] lines = input.split("\n");
-        int continueCount = 0;
-        int lastStartPos = 0;
-        int lastContinueLineNum = -1;
-        int matchCount = 0;
-        for (int lineNum = 0; lineNum < lines.length;) {
-            String line = null;
-            if (this.trimEnd) {
-                line = StringUtils.stripEnd(lines[lineNum], null);
-            } else {
-                line = lines[lineNum];
-            }
-            lineNum++;
-
-            final boolean match;
-            if (pattern == null) {
-                match = (ignoreCase ? line.toLowerCase() : line).contains(keyword);
-            } else {
-                match = pattern.matcher(line).find();
-            }
-            if (invertMatch != match) {
-                matchCount++;
-                if (beforeLines > continueCount) {
-                    int n = lastContinueLineNum == -1 ? (beforeLines >= lineNum ? 1 : lineNum - beforeLines)
-                                    : lineNum - beforeLines - continueCount;
-                    if (n >= lastContinueLineNum || lastContinueLineNum == -1) {
-                        StringBuilder beforeSb = new StringBuilder();
-                        for (int i = n; i < lineNum; i++) {
-                            appendLine(beforeSb, i, lines[i - 1]);
-                        }
-                        output.insert(lastStartPos, beforeSb);
-                    }
-                } // end handle before lines
-
-                lastStartPos = output.length();
-                appendLine(output, lineNum, line);
-
-                if (afterLines > continueCount) {
-                    int last = lineNum + afterLines - continueCount;
-                    if (last > lines.length) {
-                        last = lines.length;
-                    }
-                    for (int i = lineNum; i < last; i++) {
-                        appendLine(output, i + 1, lines[i]);
-                        lineNum++;
-                        continueCount++;
-                        lastStartPos = output.length();
-                    }
-                } // end handle afterLines
-
-                continueCount++;
-                if (maxCount > 0 && matchCount >= maxCount) {
-                    break;
-                }
-            } else { // not match
-                if (continueCount > 0) {
-                    lastContinueLineNum = lineNum - 1;
-                    continueCount = 0;
-                }
-            }
+    public String result() {
+        String result = "";
+        String apply = doApply(null, true);
+        if (apply != null) {
+            result = apply;
         }
-        final String str = output.toString();
-        return str;
-    }
-
-    protected void appendLine(StringBuilder output, int lineNum, String line) {
-        if (showLineNumber) {
-            output.append(lineNum).append(':');
+        boolean hasHitLine = grepHitLine.hasHitLine();
+        if (hasHitLine) {
+            return result + grepHitLine.toString() + "\n\033[33m(--grep end--)\033[0m\n";
         }
-        output.append(line).append('\n');
+        return "\n\033[33m(--grep end--)\033[0m\n";
     }
 }

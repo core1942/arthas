@@ -18,6 +18,11 @@ public class AgentClusterInfo {
     private String clientConnectHost;
     private int clientConnectTunnelPort;
 
+    private String applicationVersion;
+
+    private String shopName;
+    private String shopId;
+
     public AgentClusterInfo() {
 
     }
@@ -70,4 +75,27 @@ public class AgentClusterInfo {
         this.clientConnectTunnelPort = clientConnectTunnelPort;
     }
 
+    public String getApplicationVersion() {
+        return applicationVersion;
+    }
+
+    public void setApplicationVersion(String applicationVersion) {
+        this.applicationVersion = applicationVersion;
+    }
+
+    public String getShopName() {
+        return shopName;
+    }
+
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
+    }
+
+    public String getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(String shopId) {
+        this.shopId = shopId;
+    }
 }

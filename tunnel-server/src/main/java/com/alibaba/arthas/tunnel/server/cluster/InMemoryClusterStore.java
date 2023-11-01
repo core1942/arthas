@@ -1,17 +1,15 @@
 package com.alibaba.arthas.tunnel.server.cluster;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.arthas.tunnel.server.AppInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.Cache;
-import org.springframework.cache.Cache.ValueWrapper;
-import org.springframework.cache.caffeine.CaffeineCache;
 
 import com.alibaba.arthas.tunnel.server.AgentClusterInfo;
 
@@ -22,66 +20,107 @@ import com.alibaba.arthas.tunnel.server.AgentClusterInfo;
  */
 public class InMemoryClusterStore implements TunnelClusterStore {
     private final static Logger logger = LoggerFactory.getLogger(InMemoryClusterStore.class);
-
-    private Cache cache;
+    private static final Map<String, Map<String, AgentClusterInfo>> CACHE = new ConcurrentHashMap<>();
+    // private Cache cache;
 
     @Override
     public AgentClusterInfo findAgent(String agentId) {
-
-        ValueWrapper valueWrapper = cache.get(agentId);
-        if (valueWrapper == null) {
-            return null;
+        String sellerName = findSellerName(agentId);
+        Map<String, AgentClusterInfo> stringAgentClusterInfoMap = CACHE.get(sellerName);
+        if (stringAgentClusterInfoMap != null) {
+            return stringAgentClusterInfoMap.get(agentId);
         }
-
-        AgentClusterInfo info = (AgentClusterInfo) valueWrapper.get();
-        return info;
+        return null;
     }
 
     @Override
     public void removeAgent(String agentId) {
-        cache.evict(agentId);
+        String sellerName = findSellerName(agentId);
+        Map<String, AgentClusterInfo> stringAgentClusterInfoMap = CACHE.get(sellerName);
+        if (stringAgentClusterInfoMap != null) {
+            stringAgentClusterInfoMap.remove(agentId);
+            if (stringAgentClusterInfoMap.isEmpty()) {
+                CACHE.computeIfAbsent(sellerName, CACHE::remove);
+            }
+        }
     }
 
     @Override
     public void addAgent(String agentId, AgentClusterInfo info, long timeout, TimeUnit timeUnit) {
-        cache.put(agentId, info);
+        AppInfo appInfo = parseInfo(agentId);
+        Map<String, AgentClusterInfo> stringAgentClusterInfoMap = CACHE.computeIfAbsent(appInfo.getSellerName(), s -> new ConcurrentHashMap<>());
+        info.setShopName(appInfo.getShopName());
+        info.setShopId(appInfo.getShopId());
+        info.setApplicationVersion(appInfo.getApplicationVersion());
+        stringAgentClusterInfoMap.put(agentId, info);
     }
 
     @Override
-    public Collection<String> allAgentIds() {
-        CaffeineCache caffeineCache = (CaffeineCache) cache;
-        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = caffeineCache.getNativeCache();
-        return (Collection<String>) (Collection<?>) nativeCache.asMap().keySet();
+    public Set<String> allAgentIds() {
+        return CACHE.keySet();
     }
 
     @Override
-    public Map<String, AgentClusterInfo> agentInfo(String appName) {
-        CaffeineCache caffeineCache = (CaffeineCache) cache;
-        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = caffeineCache.getNativeCache();
+    public Map<String, AgentClusterInfo> agentInfo(String sellerName) {
+        return CACHE.get(sellerName);
+    }
 
-        ConcurrentMap<String, AgentClusterInfo> map = (ConcurrentMap<String, AgentClusterInfo>) (ConcurrentMap<?, ?>) nativeCache
-                .asMap();
 
-        Map<String, AgentClusterInfo> result = new HashMap<String, AgentClusterInfo>();
+    public static String findSellerName(String agentId) {
+        String appName = findAppNameFromAgentId(agentId);
+        try {
+            String[] split = StringUtils.split(appName, ":-");
+            return getSellerName(split);
+        } catch (Exception e) {
+            return appName;
+        }
+    }
 
-        String prefix = appName + "_";
-        for (Entry<String, AgentClusterInfo> entry : map.entrySet()) {
-            String agentId = entry.getKey();
-            if (agentId.startsWith(prefix)) {
-                result.put(agentId, entry.getValue());
-            }
+    public static AppInfo parseInfo(String agentId) {
+        String appName = findAppNameFromAgentId(agentId);
+        String[] split = StringUtils.split(appName, ":-");
+        String sellerName;
+        String shopName;
+        String shopId;
+        String version;
+        try {
+            sellerName = getSellerName(split);
+        } catch (Exception e) {
+            sellerName = appName;
+        }
+        try {
+            shopName = split[2];
+        } catch (Exception e) {
+            shopName = appName;
+        }
+        try {
+            shopId = split[4];
+        } catch (Exception e) {
+            shopId = "";
+        }
+        try {
+            version = split[5].replace("(", "").replace(")", "");
+        } catch (Exception e) {
+            version = "";
+        }
+        return new AppInfo(version,sellerName,shopName,shopId);
+    }
+
+    private static String getSellerName(String[] split) {
+        String sellerName = split[1] + "-" + split[3];
+        if (!"PRO".equals(split[0])) {
+            sellerName = split[0] + ":" + sellerName;
+        }
+        return sellerName;
+    }
+
+    public static String findAppNameFromAgentId(String id) {
+        int index = id.lastIndexOf('_');
+        if (index < 0) {
+            return null;
         }
 
-        return result;
-
-    }
-
-    public Cache getCache() {
-        return cache;
-    }
-
-    public void setCache(Cache cache) {
-        this.cache = cache;
+        return id.substring(0, index);
     }
 
 }

@@ -25,25 +25,19 @@ import com.taobao.arthas.core.shell.term.impl.TermImpl;
 import com.taobao.arthas.core.shell.term.impl.http.ExtHttpTtyConnection;
 import com.taobao.arthas.core.util.Constants;
 import com.taobao.arthas.core.util.FileUtils;
-
 import io.netty.channel.ChannelHandlerContext;
 import io.termd.core.telnet.TelnetConnection;
 import io.termd.core.telnet.TelnetTtyConnection;
-import io.termd.core.telnet.netty.NettyTelnetConnection;
+import io.termd.core.telnet.netty.ExtNettyTelnetConnection;
 import io.termd.core.tty.TtyConnection;
-
-import java.io.File;
-import java.lang.instrument.Instrumentation;
-import java.security.Principal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
+import java.io.File;
+import java.lang.instrument.Instrumentation;
+import java.security.Principal;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * The shell session as seen from the shell server perspective.
@@ -72,8 +66,8 @@ public class ShellImpl implements Shell {
             // 处理telnet本地连接鉴权
             if (conn instanceof TelnetTtyConnection) {
                 TelnetConnection telnetConnection = ((TelnetTtyConnection) conn).getTelnetConnection();
-                if (telnetConnection instanceof NettyTelnetConnection) {
-                    ChannelHandlerContext handlerContext = ((NettyTelnetConnection) telnetConnection)
+                if (telnetConnection instanceof ExtNettyTelnetConnection) {
+                    ChannelHandlerContext handlerContext = ((ExtNettyTelnetConnection) telnetConnection)
                             .channelHandlerContext();
                     Principal principal = AuthUtils.localPrincipal(handlerContext);
                     if (principal != null) {

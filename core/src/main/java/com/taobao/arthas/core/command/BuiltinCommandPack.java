@@ -1,43 +1,20 @@
 package com.taobao.arthas.core.command;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 import com.alibaba.arthas.deps.org.slf4j.Logger;
 import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
 import com.taobao.arthas.core.command.basic1000.*;
 import com.taobao.arthas.core.command.hidden.JulyCommand;
 import com.taobao.arthas.core.command.hidden.ThanksCommand;
-import com.taobao.arthas.core.command.klass100.ClassLoaderCommand;
-import com.taobao.arthas.core.command.klass100.DumpClassCommand;
-import com.taobao.arthas.core.command.klass100.GetStaticCommand;
-import com.taobao.arthas.core.command.klass100.JadCommand;
-import com.taobao.arthas.core.command.klass100.MemoryCompilerCommand;
-import com.taobao.arthas.core.command.klass100.OgnlCommand;
-import com.taobao.arthas.core.command.klass100.RedefineCommand;
-import com.taobao.arthas.core.command.klass100.RetransformCommand;
-import com.taobao.arthas.core.command.klass100.SearchClassCommand;
-import com.taobao.arthas.core.command.klass100.SearchMethodCommand;
+import com.taobao.arthas.core.command.klass100.*;
 import com.taobao.arthas.core.command.logger.LoggerCommand;
-import com.taobao.arthas.core.command.monitor200.DashboardCommand;
-import com.taobao.arthas.core.command.monitor200.HeapDumpCommand;
-import com.taobao.arthas.core.command.monitor200.JvmCommand;
-import com.taobao.arthas.core.command.monitor200.MBeanCommand;
-import com.taobao.arthas.core.command.monitor200.MemoryCommand;
-import com.taobao.arthas.core.command.monitor200.MonitorCommand;
-import com.taobao.arthas.core.command.monitor200.PerfCounterCommand;
-import com.taobao.arthas.core.command.monitor200.ProfilerCommand;
-import com.taobao.arthas.core.command.monitor200.StackCommand;
-import com.taobao.arthas.core.command.monitor200.ThreadCommand;
-import com.taobao.arthas.core.command.monitor200.TimeTunnelCommand;
-import com.taobao.arthas.core.command.monitor200.TraceCommand;
-import com.taobao.arthas.core.command.monitor200.VmToolCommand;
-import com.taobao.arthas.core.command.monitor200.WatchCommand;
+import com.taobao.arthas.core.command.monitor200.*;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.Command;
 import com.taobao.arthas.core.shell.command.CommandResolver;
 import com.taobao.middleware.cli.annotations.Name;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * TODO automatically discover the built-in commands.
@@ -96,6 +73,10 @@ public class BuiltinCommandPack implements CommandResolver {
         commandClassList.add(LoggerCommand.class);
         commandClassList.add(HistoryCommand.class);
         commandClassList.add(CatCommand.class);
+        commandClassList.add(ExecCommand.class);
+        commandClassList.add(LsCommand.class);
+        commandClassList.add(SqlCommand.class);
+        commandClassList.add(CdCommand.class);
         commandClassList.add(Base64Command.class);
         commandClassList.add(EchoCommand.class);
         commandClassList.add(PwdCommand.class);
@@ -103,12 +84,12 @@ public class BuiltinCommandPack implements CommandResolver {
         commandClassList.add(GrepCommand.class);
         commandClassList.add(TeeCommand.class);
         commandClassList.add(ProfilerCommand.class);
-        commandClassList.add(VmToolCommand.class);
+        // commandClassList.add(VmToolCommand.class);
         commandClassList.add(StopCommand.class);
         try {
-            if (ClassLoader.getSystemClassLoader().getResource("jdk/jfr/Recording.class") != null) {
-                commandClassList.add(JFRCommand.class);
-            }
+            // if (ClassLoader.getSystemClassLoader().getResource("jdk/jfr/Recording.class") != null) {
+            //     commandClassList.add(JFRCommand.class);
+            // }
         } catch (Throwable e) {
             logger.error("This jdk version not support jfr command");
         }

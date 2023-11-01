@@ -1,14 +1,13 @@
 package com.alibaba.arthas.tunnel.server.app.web;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,44 +37,34 @@ public class DetailAPIController {
     @Autowired(required = false)
     private TunnelClusterStore tunnelClusterStore;
 
+    public static void main(String[] args) {
+        String str = "PRO:企迈正餐演示-企迈小中餐演示门店（正餐一体化）:215968-182500:(20230831211306)";
+        String[] split = StringUtils.split(str, ":-");
+        System.out.println(Arrays.toString(split));
+    }
+
     @RequestMapping("/api/tunnelApps")
     @ResponseBody
     public Set<String> tunnelApps(HttpServletRequest request, Model model) {
         if (!arthasProperties.isEnableDetailPages()) {
             throw new IllegalAccessError("not allow");
         }
-
-        Set<String> result = new HashSet<String>();
-
         if (tunnelClusterStore != null) {
-            Collection<String> agentIds = tunnelClusterStore.allAgentIds();
-
-            for (String id : agentIds) {
-                String appName = findAppNameFromAgentId(id);
-                if (appName != null) {
-                    result.add(appName);
-                } else {
-                    logger.warn("illegal agentId: " + id);
-                }
-            }
-
+            return tunnelClusterStore.allAgentIds();
         }
-
-        return result;
+        return Collections.emptySet();
     }
 
     @RequestMapping("/api/tunnelAgentInfo")
     @ResponseBody
-    public Map<String, AgentClusterInfo> tunnelAgentIds(@RequestParam(value = "app", required = true) String appName,
+    public Map<String, AgentClusterInfo> tunnelAgentIds(@RequestParam(value = "app", required = true) String sellerName,
             HttpServletRequest request, Model model) {
         if (!arthasProperties.isEnableDetailPages()) {
             throw new IllegalAccessError("not allow");
         }
 
         if (tunnelClusterStore != null) {
-            Map<String, AgentClusterInfo> agentInfos = tunnelClusterStore.agentInfo(appName);
-
-            return agentInfos;
+            return tunnelClusterStore.agentInfo(sellerName);
         }
 
         return Collections.emptyMap();
@@ -103,12 +92,5 @@ public class DetailAPIController {
         return result;
     }
 
-    private static String findAppNameFromAgentId(String id) {
-        int index = id.indexOf('_');
-        if (index < 0 || index >= id.length()) {
-            return null;
-        }
 
-        return id.substring(0, index);
-    }
 }

@@ -1,29 +1,5 @@
 package com.taobao.arthas.core.server;
 
-import java.arthas.SpyAPI;
-import java.io.File;
-import java.io.IOException;
-import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
-import java.lang.reflect.Method;
-import java.security.CodeSource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.Timer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.jar.JarFile;
-
 import com.alibaba.arthas.deps.ch.qos.logback.classic.LoggerContext;
 import com.alibaba.arthas.deps.org.slf4j.Logger;
 import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
@@ -67,20 +43,29 @@ import com.taobao.arthas.core.shell.term.impl.HttpTermServer;
 import com.taobao.arthas.core.shell.term.impl.http.api.HttpApiHandler;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
 import com.taobao.arthas.core.shell.term.impl.httptelnet.HttpTelnetTermServer;
-import com.taobao.arthas.core.util.ArthasBanner;
-import com.taobao.arthas.core.util.FileUtils;
-import com.taobao.arthas.core.util.IPUtils;
-import com.taobao.arthas.core.util.InstrumentationUtils;
-import com.taobao.arthas.core.util.LogUtil;
-import com.taobao.arthas.core.util.StringUtils;
-import com.taobao.arthas.core.util.UserStatUtil;
+import com.taobao.arthas.core.util.*;
 import com.taobao.arthas.core.util.affect.EnhancerAffect;
 import com.taobao.arthas.core.util.matcher.WildcardMatcher;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
+
+import java.arthas.SpyAPI;
+import java.io.File;
+import java.io.IOException;
+import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
+import java.lang.reflect.Method;
+import java.security.CodeSource;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.JarFile;
 
 
 /**
@@ -90,11 +75,12 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class ArthasBootstrap {
     private static final String ARTHAS_SPY_JAR = "arthas-spy.jar";
     public static final String ARTHAS_HOME_PROPERTY = "arthas.home";
-    private static String ARTHAS_HOME = null;
+    public static String ARTHAS_HOME = null;
 
     public static final String CONFIG_NAME_PROPERTY = "arthas.config.name";
     public static final String CONFIG_LOCATION_PROPERTY = "arthas.config.location";
     public static final String CONFIG_OVERRIDE_ALL = "arthas.config.overrideAll";
+    public static final String ARTHAS_USER_DIR = "arthas.user.dir";
 
     private static ArthasBootstrap arthasBootstrap;
 
@@ -244,6 +230,7 @@ public class ArthasBootstrap {
     }
     
     private void initArthasEnvironment(Map<String, String> argsMap) throws IOException {
+        System.setProperty(ARTHAS_USER_DIR, System.getProperty("user.dir"));
         if (arthasEnvironment == null) {
             arthasEnvironment = new ArthasEnvironment();
         }

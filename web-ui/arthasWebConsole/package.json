@@ -19,6 +19,7 @@
     "daisyui": "^2.31.0",
     "dayjs": "^1.11.6",
     "echarts": "^5.3.3",
+    "element-ui": "^2.15.14",
     "highlight.js": "^11.6.0",
     "pinia": "^2.0.15",
     "vue": "^3.2.25",
@@ -26,7 +27,8 @@
     "xstate": "^4.32.1",
     "xterm": "^5.0.0",
     "xterm-addon-fit": "^0.6.0",
-    "xterm-addon-webgl": "^0.13.0"
+    "xterm-addon-webgl": "^0.13.0",
+    "zmodem.js": "^0.1.10"
   },
   "devDependencies": {
     "@types/node": "^18.7.2",

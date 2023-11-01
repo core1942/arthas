@@ -7,6 +7,8 @@ import java.util.List;
 
 import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.handlers.Handler;
+import com.taobao.arthas.core.shell.handlers.term.*;
+import com.taobao.arthas.core.shell.handlers.Handler;
 import com.taobao.arthas.core.shell.handlers.term.CloseHandlerWrapper;
 import com.taobao.arthas.core.shell.handlers.term.DefaultTermStdinHandler;
 import com.taobao.arthas.core.shell.handlers.term.EventHandler;
@@ -16,13 +18,16 @@ import com.taobao.arthas.core.shell.handlers.term.StdinHandlerWrapper;
 import com.taobao.arthas.core.shell.session.Session;
 import com.taobao.arthas.core.shell.term.SignalHandler;
 import com.taobao.arthas.core.shell.term.Term;
+import com.taobao.arthas.core.shell.term.impl.http.ExtHttpTtyConnection;
 import com.taobao.arthas.core.util.Constants;
 import com.taobao.arthas.core.util.FileUtils;
+import io.netty.channel.ChannelFuture;
 
 import io.termd.core.function.Consumer;
 import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
 import io.termd.core.readline.Readline;
+import io.termd.core.telnet.ExtTelnetTtyConnection;
 import io.termd.core.readline.functions.HistorySearchForward;
 import io.termd.core.tty.TtyConnection;
 import io.termd.core.util.Helper;
@@ -43,6 +48,7 @@ public class TermImpl implements Term {
     private SignalHandler suspendHandler;
     private Session session;
     private boolean inReadline;
+    private int maxCharLength = 1500;
 
     public TermImpl(TtyConnection conn) {
         this(com.taobao.arthas.core.shell.term.impl.Helper.loadKeymap(), conn);
@@ -55,7 +61,7 @@ public class TermImpl implements Term {
         for (Function function : readlineFunctions) {
             /**
              * 防止没有鉴权时，查看历史命令
-             * 
+             *
              * @see io.termd.core.readline.functions.HistorySearchForward
              */
             if (function.name().contains("history")) {
@@ -186,8 +192,40 @@ public class TermImpl implements Term {
                 data = function.apply(data);
             }
         }
-        conn.write(data);
+        backPressure(conn, data);
         return this;
+    }
+    private void backPressure(TtyConnection conn, String data) {
+        ChannelFuture channelFuture = null;
+        if (conn instanceof ExtTelnetTtyConnection) {
+            channelFuture = ((ExtTelnetTtyConnection) conn).writeAndFlush(data);
+        } else if (conn instanceof ExtHttpTtyConnection) {
+            if (data.length() <= maxCharLength) {
+                channelFuture = ((ExtHttpTtyConnection) conn).writeAndFlush(data);
+            } else {
+                int start = 0;
+                int end = maxCharLength;
+                while (true) {
+                    String s = data.substring(start, end);
+                    channelFuture = ((ExtHttpTtyConnection) conn).writeAndFlush(s);
+                    start = start + maxCharLength;
+                    if (start >= data.length()) {
+                        break;
+                    }
+                    end = Math.min(data.length(), end + maxCharLength);
+                }
+            }
+        }
+        if (channelFuture != null) {
+            if (!channelFuture.channel().isWritable()) {
+                try {
+                    channelFuture.sync();
+                } catch (InterruptedException e) {
+                }
+            }
+        } else {
+            conn.write(data);
+        }
     }
 
     public TermImpl interruptHandler(SignalHandler handler) {

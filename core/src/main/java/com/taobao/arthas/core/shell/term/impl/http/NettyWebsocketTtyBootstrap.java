@@ -1,8 +1,8 @@
 package com.taobao.arthas.core.shell.term.impl.http;
 
+import com.alibaba.arthas.tunnel.client.MyLocalServerChannel;
 import com.taobao.arthas.common.ArthasConstants;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -10,16 +10,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.local.LocalAddress;
-import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.concurrent.EventExecutorGroup;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.ImmediateEventExecutor;
+import io.netty.util.concurrent.*;
 import io.termd.core.function.Consumer;
 import io.termd.core.tty.TtyConnection;
 import io.termd.core.util.CompletableFuture;
@@ -71,6 +66,7 @@ public class NettyWebsocketTtyBootstrap {
         if (this.port > 0) {
             ServerBootstrap b = new ServerBootstrap();
             b.group(group).channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO))
+                    // .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 1024))
                     .childHandler(new TtyServerInitializer(channelGroup, handler, workerGroup, httpSessionManager));
 
             final ChannelFuture f = b.bind(host, port);
@@ -89,7 +85,7 @@ public class NettyWebsocketTtyBootstrap {
 
         // listen local address in VM communication
         ServerBootstrap b2 = new ServerBootstrap();
-        b2.group(group).channel(LocalServerChannel.class).handler(new LoggingHandler(LogLevel.INFO))
+        b2.group(group).channel(MyLocalServerChannel.class).handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(new LocalTtyServerInitializer(channelGroup, handler, workerGroup));
 
         ChannelFuture bindLocalFuture = b2.bind(new LocalAddress(ArthasConstants.NETTY_LOCAL_ADDRESS));

@@ -1,25 +1,9 @@
 package com.alibaba.arthas.tunnel.client;
 
-import java.net.URISyntaxException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.taobao.arthas.common.ArthasConstants;
-
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
-import io.netty.channel.local.LocalChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -29,6 +13,10 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler.Cli
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URISyntaxException;
 
 /**
  * @author hengyunabc 2019-08-28
@@ -78,10 +66,11 @@ public class ForwardClientSocketClientHandler extends SimpleChannelInboundHandle
 
             Bootstrap b = new Bootstrap();
             b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
-            b.group(group).channel(LocalChannel.class)
-                    .handler(new ChannelInitializer<LocalChannel>() {
+            b.group(group)
+                    .channel(MyLocalChannel.class)
+                    .handler(new ChannelInitializer<MyLocalChannel>() {
                         @Override
-                        protected void initChannel(LocalChannel ch) {
+                        protected void initChannel(MyLocalChannel ch) {
                             ChannelPipeline p = ch.pipeline();
                             p.addLast(new HttpClientCodec(), new HttpObjectAggregator(ArthasConstants.MAX_HTTP_CONTENT_LENGTH), websocketClientHandler,
                                     localFrameHandler);

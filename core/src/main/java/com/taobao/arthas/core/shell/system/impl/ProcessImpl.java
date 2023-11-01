@@ -15,6 +15,7 @@ import com.taobao.arthas.core.shell.command.Command;
 import com.taobao.arthas.core.shell.command.CommandProcess;
 import com.taobao.arthas.core.shell.command.internal.CloseFunction;
 import com.taobao.arthas.core.shell.command.internal.StatisticsFunction;
+import com.taobao.arthas.core.shell.command.internal.TermHandler;
 import com.taobao.arthas.core.shell.handlers.Handler;
 import com.taobao.arthas.core.shell.session.Session;
 import com.taobao.arthas.core.shell.system.ExecStatus;
@@ -26,6 +27,7 @@ import com.taobao.middleware.cli.CommandLine;
 import io.termd.core.function.Function;
 
 import java.lang.instrument.ClassFileTransformer;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -624,28 +626,19 @@ public class ProcessImpl implements Process {
     static class ProcessOutput {
 
         private List<Function<String, String>> stdoutHandlerChain;
-        private StatisticsFunction statisticsHandler = null;
-        private List<Function<String, String>> flushHandlerChain = null;
+        private List<Function<String, String>> flushHandlerChain = new ArrayList<Function<String, String>>();
         private String cacheLocation;
         private Tty term;
 
         public ProcessOutput(List<Function<String, String>> stdoutHandlerChain, String cacheLocation, Tty term) {
-            // this.stdoutHandlerChain = stdoutHandlerChain;
-
-            int i = 0;
-            for (; i < stdoutHandlerChain.size(); i++) {
-                if (stdoutHandlerChain.get(i) instanceof StatisticsFunction) {
-                    break;
+            this.stdoutHandlerChain = stdoutHandlerChain;
+            for (Function<String, String> stringStringFunction : stdoutHandlerChain) {
+                if (stringStringFunction instanceof StatisticsFunction) {
+                    flushHandlerChain.add(stringStringFunction);
                 }
-            }
-            if (i < stdoutHandlerChain.size()) {
-                this.stdoutHandlerChain = stdoutHandlerChain.subList(0, i + 1);
-                this.statisticsHandler = (StatisticsFunction) stdoutHandlerChain.get(i);
-                if (i < stdoutHandlerChain.size() - 1) {
-                    flushHandlerChain = stdoutHandlerChain.subList(i + 1, stdoutHandlerChain.size());
+                if (stringStringFunction instanceof TermHandler) {
+                    flushHandlerChain.add(stringStringFunction);
                 }
-            } else {
-                this.stdoutHandlerChain = stdoutHandlerChain;
             }
 
             this.cacheLocation = cacheLocation;
@@ -656,21 +649,30 @@ public class ProcessImpl implements Process {
             if (stdoutHandlerChain != null) {
                 //hotspot, reduce memory fragment (foreach/iterator)
                 int size = stdoutHandlerChain.size();
-                for (int i = 0; i < size; i++) {
-                    Function<String, String> function = stdoutHandlerChain.get(i);
+                for (Function<String, String> function : stdoutHandlerChain) {
                     data = function.apply(data);
+                    if (data == null) {
+                        break;
+                    }
                 }
             }
         }
 
         private void close() {
-            if (statisticsHandler != null && flushHandlerChain != null) {
-                String data = statisticsHandler.result();
-
-                for (Function<String, String> function : flushHandlerChain) {
-                    data = function.apply(data);
-                    if (function instanceof StatisticsFunction) {
-                        data = ((StatisticsFunction) function).result();
+            if (flushHandlerChain != null && !flushHandlerChain.isEmpty()) {
+                String data = null;
+                for (int i = 0; i < flushHandlerChain.size(); i++) {
+                    Function<String, String> stringStringFunction = flushHandlerChain.get(i);
+                    if (i != 0) {
+                        data = stringStringFunction.apply(data);
+                    }
+                    if (stringStringFunction instanceof StatisticsFunction) {
+                        String result = ((StatisticsFunction) stringStringFunction).result();
+                        if (data != null) {
+                            data += result;
+                        } else {
+                            data = result;
+                        }
                     }
                 }
             }
