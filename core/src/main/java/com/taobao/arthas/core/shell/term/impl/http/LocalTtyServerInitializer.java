@@ -1,9 +1,10 @@
 package com.taobao.arthas.core.shell.term.impl.http;
 
+import com.alibaba.arthas.tunnel.client.MyLocalChannel;
+import com.taobao.arthas.common.ArthasConstants;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.local.LocalChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
@@ -13,14 +14,12 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import io.termd.core.function.Consumer;
 import io.termd.core.tty.TtyConnection;
 
-import com.taobao.arthas.common.ArthasConstants;
-
 /**
  * 
  * @author hengyunabc 2020-09-02
  *
  */
-public class LocalTtyServerInitializer extends ChannelInitializer<LocalChannel> {
+public class LocalTtyServerInitializer extends ChannelInitializer<MyLocalChannel> {
 
     private final ChannelGroup group;
     private final Consumer<TtyConnection> handler;
@@ -34,7 +33,7 @@ public class LocalTtyServerInitializer extends ChannelInitializer<LocalChannel> 
     }
 
     @Override
-    protected void initChannel(LocalChannel ch) throws Exception {
+    protected void initChannel(MyLocalChannel ch) throws Exception {
 
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new HttpServerCodec());

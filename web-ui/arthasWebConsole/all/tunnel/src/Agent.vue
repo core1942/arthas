@@ -35,9 +35,10 @@ onMounted(() => {
   <table class="table table-normal w-[100vw]">
     <thead>
       <tr >
-        <th class="normal-case">IP</th>
-        <th class="normal-case">AgentId</th>
-        <th class="normal-case">Version</th>
+        <th class="normal-case">门店名称</th>
+        <th class="normal-case">门店ID</th>
+        <th class="normal-case">主机IP</th>
+        <th class="normal-case">应用版本</th>
       </tr>
     </thead>
     <tbody>
@@ -45,14 +46,17 @@ onMounted(() => {
         <td>
           <a class="btn btn-primary btn-sm"
             :href="tunnelWebConsoleLink(agentInfoRecord[0], agentInfoRecord[1].clientConnectTunnelPort, agentInfoRecord[1].clientConnectHost)">{{
-                agentInfoRecord[1].host
+                agentInfoRecord[1].shopName
             }}</a>
         </td>
         <td>
-          {{ agentInfoRecord[0] }}
+          {{ agentInfoRecord[1].shopId }}
         </td>
         <td>
-          {{ agentInfoRecord[1].arthasVersion }}
+          {{ agentInfoRecord[1].host }}
+        </td>
+        <td>
+          {{ agentInfoRecord[1].applicationVersion }}
         </td>
       </tr>
     </tbody>

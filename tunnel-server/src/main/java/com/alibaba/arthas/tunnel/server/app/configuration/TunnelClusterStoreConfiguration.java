@@ -33,9 +33,9 @@ public class TunnelClusterStoreConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "spring.cache.type", havingValue = "caffeine")
     public TunnelClusterStore tunnelClusterStore(@Autowired CacheManager cacheManager) {
-        Cache inMemoryClusterCache = cacheManager.getCache("inMemoryClusterCache");
+        // Cache inMemoryClusterCache = cacheManager.getCache("inMemoryClusterCache");
         InMemoryClusterStore inMemoryClusterStore = new InMemoryClusterStore();
-        inMemoryClusterStore.setCache(inMemoryClusterCache);
+        // inMemoryClusterStore.setCache(inMemoryClusterCache);
         return inMemoryClusterStore;
     }
 

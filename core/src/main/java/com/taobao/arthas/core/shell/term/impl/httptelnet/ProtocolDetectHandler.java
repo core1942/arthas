@@ -1,14 +1,10 @@
 package com.taobao.arthas.core.shell.term.impl.httptelnet;
 
-import java.util.concurrent.TimeUnit;
-
 import com.taobao.arthas.common.ArthasConstants;
 import com.taobao.arthas.core.shell.term.impl.http.BasicHttpAuthenticatorHandler;
 import com.taobao.arthas.core.shell.term.impl.http.HttpRequestHandler;
-
 import com.taobao.arthas.core.shell.term.impl.http.TtyWebSocketFrameHandler;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -24,8 +20,10 @@ import io.netty.util.concurrent.ScheduledFuture;
 import io.termd.core.function.Consumer;
 import io.termd.core.function.Supplier;
 import io.termd.core.telnet.TelnetHandler;
-import io.termd.core.telnet.netty.TelnetChannelHandler;
+import io.termd.core.telnet.netty.ExtTelnetChannelHandler;
 import io.termd.core.tty.TtyConnection;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 
@@ -57,7 +55,7 @@ public class ProtocolDetectHandler extends ChannelInboundHandlerAdapter {
             @Override
             public void run() {
                 channelGroup.add(ctx.channel());
-                TelnetChannelHandler handler = new TelnetChannelHandler(handlerFactory);
+                ExtTelnetChannelHandler handler = new ExtTelnetChannelHandler(handlerFactory);
                 ChannelPipeline pipeline = ctx.pipeline();
                 pipeline.addLast(handler);
                 pipeline.remove(ProtocolDetectHandler.this);
@@ -85,7 +83,7 @@ public class ProtocolDetectHandler extends ChannelInboundHandlerAdapter {
         ChannelPipeline pipeline = ctx.pipeline();
         if (!"GET".equalsIgnoreCase(httpHeader)) { // telnet
             channelGroup.add(ctx.channel());
-            TelnetChannelHandler handler = new TelnetChannelHandler(handlerFactory);
+            ExtTelnetChannelHandler handler = new ExtTelnetChannelHandler(handlerFactory);
             pipeline.addLast(handler);
             ctx.fireChannelActive(); // trigger TelnetChannelHandler init
         } else {

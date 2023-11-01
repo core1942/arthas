@@ -1,10 +1,6 @@
 package com.taobao.arthas.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
 
 /***
  * This is a utility class providing a reader/writer capability required by the
@@ -43,12 +39,10 @@ public final class IOUtil {
             public void run() {
                 try {
                     InputStreamReader reader = new InputStreamReader(remoteInput);
-                    while (true) {
-                        int singleChar = reader.read();
-                        if (singleChar == -1) {
-                            break;
-                        }
-                        localOutput.write(singleChar);
+                    char[] cbuf = new char[8192];
+                    int len;
+                    while ((len = reader.read(cbuf)) != -1) {
+                        localOutput.write(cbuf, 0, len);
                         localOutput.flush();
                     }
                 } catch (IOException e) {

@@ -1,13 +1,6 @@
 package com.alibaba.arthas.tunnel.server.cluster;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -75,20 +68,20 @@ public class RedisTunnelClusterStore implements TunnelClusterStore {
     }
 
     @Override
-    public Collection<String> allAgentIds() {
+    public Set<String> allAgentIds() {
         ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
 
         int length = prefix.length();
         final Set<String> redisValues = opsForValue.getOperations().keys(prefix + "*");
         if (redisValues != null) {
-            final ArrayList<String> result = new ArrayList<>(redisValues.size());
+            final Set<String> result = new HashSet<>(redisValues.size());
             for (String value : redisValues) {
                 result.add(value.substring(length));
             }
             return result;
         } else {
             logger.error("try to get allAgentIds error. redis returned null.");
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
     }
 

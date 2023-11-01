@@ -24,13 +24,17 @@ onMounted(() => {
   <table class="table w-[100vw] table-normal">
     <thead>
       <tr>
-        <th class="normal-case">name of application</th>
+        <th class="normal-case">品牌名称</th>
+        <th class="normal-case">品牌ID</th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="app in apps" :key="app" class="hover">
         <td>
-          <a class="btn btn-primary btn-sm normal-case" :href="detailLink(app)">{{ app }}</a>
+          <a class="btn btn-primary btn-sm normal-case" :href="detailLink(app)">{{ app.substring(0,app.lastIndexOf('-')) }}</a>
+        </td>
+        <td>
+          {{ app.substring(app.lastIndexOf('-')+1) }}
         </td>
       </tr>
     </tbody>

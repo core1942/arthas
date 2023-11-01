@@ -1,23 +1,7 @@
 package com.taobao.arthas.core.command.monitor200;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.CodeSource;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import com.alibaba.arthas.deps.org.slf4j.Logger;
 import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
-import com.taobao.arthas.common.IOUtils;
-import com.taobao.arthas.common.OSUtils;
 import com.taobao.arthas.core.command.Constants;
 import com.taobao.arthas.core.command.model.ProfilerModel;
 import com.taobao.arthas.core.server.ArthasBootstrap;
@@ -26,16 +10,16 @@ import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.cli.CompletionUtils;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.CommandProcess;
-import com.taobao.middleware.cli.annotations.Argument;
-import com.taobao.middleware.cli.annotations.DefaultValue;
-import com.taobao.middleware.cli.annotations.Description;
-import com.taobao.middleware.cli.annotations.Name;
-import com.taobao.middleware.cli.annotations.Option;
-import com.taobao.middleware.cli.annotations.Summary;
-
-import arthas.VmTool;
+import com.taobao.middleware.cli.annotations.*;
 import one.profiler.AsyncProfiler;
 import one.profiler.Counter;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.CodeSource;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 
@@ -234,21 +218,21 @@ public class ProfilerCommand extends AnnotatedCommand {
 
     static {
         String profierSoPath = null;
-        if (OSUtils.isMac()) {
-            // FAT_BINARY support both x86_64/arm64
-            profierSoPath = "async-profiler/libasyncProfiler-mac.so";
-        }
-        if (OSUtils.isLinux()) {
-            if (OSUtils.isX86_64() && OSUtils.isMuslLibc()) {
-                profierSoPath = "async-profiler/libasyncProfiler-linux-musl-x64.so";
-            } else if(OSUtils.isX86_64()){
-                profierSoPath = "async-profiler/libasyncProfiler-linux-x64.so";
-            } else if (OSUtils.isArm64() && OSUtils.isMuslLibc()) {
-                profierSoPath = "async-profiler/libasyncProfiler-linux-musl-arm64.so";
-            } else if (OSUtils.isArm64()) {
-                profierSoPath = "async-profiler/libasyncProfiler-linux-arm64.so";
-            }
-        }
+        // if (OSUtils.isMac()) {
+        //     // FAT_BINARY support both x86_64/arm64
+        //     profierSoPath = "async-profiler/libasyncProfiler-mac.so";
+        // }
+        // if (OSUtils.isLinux()) {
+        //     if (OSUtils.isX86_64() && OSUtils.isMuslLibc()) {
+        //         profierSoPath = "async-profiler/libasyncProfiler-linux-musl-x64.so";
+        //     } else if(OSUtils.isX86_64()){
+        //         profierSoPath = "async-profiler/libasyncProfiler-linux-x64.so";
+        //     } else if (OSUtils.isArm64() && OSUtils.isMuslLibc()) {
+        //         profierSoPath = "async-profiler/libasyncProfiler-linux-musl-arm64.so";
+        //     } else if (OSUtils.isArm64()) {
+        //         profierSoPath = "async-profiler/libasyncProfiler-linux-arm64.so";
+        //     }
+        // }
 
         if (profierSoPath != null) {
             CodeSource codeSource = ProfilerCommand.class.getProtectionDomain().getCodeSource();
@@ -497,33 +481,33 @@ public class ProfilerCommand extends AnnotatedCommand {
             profiler = AsyncProfiler.getInstance(this.actionArg);
         }
 
-        if (libPath != null) {
-            // load from arthas directory
-            // 尝试把lib文件复制到临时文件里，避免多次attach时出现 Native Library already loaded in another classloader
-            FileOutputStream tmpLibOutputStream = null;
-            FileInputStream libInputStream = null;
-            try {
-                File tmpLibFile = File.createTempFile(VmTool.JNI_LIBRARY_NAME, null);
-                tmpLibOutputStream = new FileOutputStream(tmpLibFile);
-                libInputStream = new FileInputStream(libPath);
-
-                IOUtils.copy(libInputStream, tmpLibOutputStream);
-                libPath = tmpLibFile.getAbsolutePath();
-                logger.debug("copy {} to {}", libPath, tmpLibFile);
-            } catch (Throwable e) {
-                logger.error("try to copy lib error! libPath: {}", libPath, e);
-            } finally {
-                IOUtils.close(libInputStream);
-                IOUtils.close(tmpLibOutputStream);
-            }
-            profiler = AsyncProfiler.getInstance(libPath);
-        } else {
-            if (OSUtils.isLinux() || OSUtils.isMac()) {
-                throw new IllegalStateException("Can not find libasyncProfiler so, please check the arthas directory.");
-            } else {
-                throw new IllegalStateException("Current OS do not support AsyncProfiler, Only support Linux/Mac.");
-            }
-        }
+        // if (libPath != null) {
+        //     // load from arthas directory
+        //     // 尝试把lib文件复制到临时文件里，避免多次attach时出现 Native Library already loaded in another classloader
+        //     FileOutputStream tmpLibOutputStream = null;
+        //     FileInputStream libInputStream = null;
+        //     try {
+        //         File tmpLibFile = File.createTempFile(VmTool.JNI_LIBRARY_NAME, null);
+        //         tmpLibOutputStream = new FileOutputStream(tmpLibFile);
+        //         libInputStream = new FileInputStream(libPath);
+        //
+        //         IOUtils.copy(libInputStream, tmpLibOutputStream);
+        //         libPath = tmpLibFile.getAbsolutePath();
+        //         logger.debug("copy {} to {}", libPath, tmpLibFile);
+        //     } catch (Throwable e) {
+        //         logger.error("try to copy lib error! libPath: {}", libPath, e);
+        //     } finally {
+        //         IOUtils.close(libInputStream);
+        //         IOUtils.close(tmpLibOutputStream);
+        //     }
+        //     profiler = AsyncProfiler.getInstance(libPath);
+        // } else {
+        //     if (OSUtils.isLinux() || OSUtils.isMac()) {
+        //         throw new IllegalStateException("Can not find libasyncProfiler so, please check the arthas directory.");
+        //     } else {
+        //         throw new IllegalStateException("Current OS do not support AsyncProfiler, Only support Linux/Mac.");
+        //     }
+        // }
 
         return profiler;
     }

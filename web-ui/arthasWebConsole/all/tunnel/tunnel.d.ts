@@ -3,5 +3,8 @@ type AgentInfo = {
   host:string,
   port:number,
   clientConnectTunnelPort:number,
-  arthasVersion:string
+  arthasVersion:string,
+  shopName:string,
+  shopId:string,
+  applicationVersion:string
 }

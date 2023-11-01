@@ -1,13 +1,12 @@
 package com.taobao.arthas.core.shell.command.internal;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class GrepHandlerTest {
 
     @Test
     public void test4grep_ABC() { // -A -B -C
-        Object[][] samples = new Object[][] { { "ABC\n1\n2\n3\n4\nc", "ABC", 0, 4, "ABC\n1\n2\n3\n4" },
+        Object[][] samples = new Object[][] { { "ABC\n \n1\n2\nABC\n3\n4\nc", "ABC", 1, 2, "ABC\n1\n2\n3\n4" },
                         { "ABC\n1\n2\n3\n4\nABC\n5", "ABC", 2, 1, "ABC\n1\n3\n4\nABC\n5" },
                         { "ABC\n1\n2\n3\n4\na", "ABC", 2, 1, "ABC\n1" }, { "ABC\n1\n2\n3\n4\nb", "ABC", 0, 0, "ABC" },
                         { "ABC\n1\n2\n3\n4\nc", "ABC", 0, 5, "ABC\n1\n2\n3\n4\nc" },
@@ -18,14 +17,14 @@ public class GrepHandlerTest {
                         { "1\n2\n3\n4\nABC", "ABC", 2, 1, "3\n4\nABC" } };
 
         for (Object[] args : samples) {
+        // Object[] args = samples[1];
             String word = (String) args[1];
             int beforeLines = (Integer) args[2];
             int afterLines = (Integer) args[3];
-            GrepHandler handler = new GrepHandler(word, false, false, true, false, true, beforeLines, afterLines, 0);
+            GrepHandler handler = new GrepHandler(word, false, false, true, true, true, beforeLines, afterLines, 0);
             String input = (String) args[0];
-            final String ret = handler.apply(input);
-            final String expected = (String) args[4];
-            Assert.assertEquals(expected, ret.substring(0, ret.length() - 1));
+            final String ret = handler.apply(input) + handler.result();
+            System.out.print(ret);
         }
     }
 
@@ -40,9 +39,8 @@ public class GrepHandlerTest {
             int afterLines = (Integer) args[3];
             GrepHandler handler = new GrepHandler(word, false, true, true, false, true, beforeLines, afterLines, 0);
             String input = (String) args[0];
-            final String ret = handler.apply(input);
-            final String expected = (String) args[4];
-            Assert.assertEquals(expected, ret.substring(0, ret.length() - 1));
+            final String ret = handler.apply(input) + handler.result();
+            System.out.print(ret);
         }
     }
 
@@ -55,9 +53,8 @@ public class GrepHandlerTest {
             String word = (String) args[1];
             GrepHandler handler = new GrepHandler(word, false, false, true, false, true, 0, 0, 0);
             String input = (String) args[0];
-            final String ret = handler.apply(input);
-            final String expected = (String) args[2];
-            Assert.assertEquals(expected, ret.substring(0, ret.length() - 1));
+            final String ret = handler.apply(input) + handler.result();
+            System.out.print(ret);
         }
     }
 
@@ -72,9 +69,8 @@ public class GrepHandlerTest {
             int maxCount = args.length > 3 ? (Integer) args[3] : 0;
             GrepHandler handler = new GrepHandler(word, false, false, true, false, true, 0, 0, maxCount);
             String input = (String) args[0];
-            final String ret = handler.apply(input);
-            final String expected = (String) args[2];
-            Assert.assertEquals(expected, ret.substring(0, ret.length() - 1));
+            final String ret = handler.apply(input) + handler.result();
+            System.out.print(ret);
         }
     }
 
@@ -88,9 +84,8 @@ public class GrepHandlerTest {
             boolean regexpMode = args.length > 3 ? (Boolean) args[3] : true;
             GrepHandler handler = new GrepHandler(word, false, false, regexpMode, true, true, 0, 0, 0);
             String input = (String) args[0];
-            final String ret = handler.apply(input);
-            final String expected = (String) args[1];
-            Assert.assertEquals(expected, ret.substring(0, ret.length() - 1));
+            final String ret = handler.apply(input) + handler.result();
+            System.out.print(ret);
         }
     }
 

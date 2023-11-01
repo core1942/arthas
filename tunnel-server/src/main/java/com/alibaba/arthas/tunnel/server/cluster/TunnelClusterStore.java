@@ -2,6 +2,7 @@ package com.alibaba.arthas.tunnel.server.cluster;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.arthas.tunnel.server.AgentClusterInfo;
@@ -19,7 +20,7 @@ public interface TunnelClusterStore {
 
     public void removeAgent(String agentId);
 
-    public Collection<String> allAgentIds();
+    public Set<String> allAgentIds();
 
-    public Map<String, AgentClusterInfo> agentInfo(String appName);
+    public Map<String, AgentClusterInfo> agentInfo(String sellerName);
 }

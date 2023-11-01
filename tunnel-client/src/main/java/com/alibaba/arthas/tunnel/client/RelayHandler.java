@@ -26,9 +26,20 @@ public final class RelayHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (relayChannel.isActive()) {
             relayChannel.writeAndFlush(msg);
+            if (!relayChannel.isWritable()) {
+                ctx.channel().config().setAutoRead(false);
+            }
         } else {
             ReferenceCountUtil.release(msg);
         }
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        if (ctx.channel().isWritable()) {
+            relayChannel.config().setAutoRead(true);
+        }
+        super.channelWritabilityChanged(ctx);
     }
 
     @Override

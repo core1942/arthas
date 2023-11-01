@@ -1,17 +1,16 @@
 package com.taobao.arthas.core.shell.term.impl.httptelnet;
 
-import java.nio.charset.Charset;
-
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
-
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.termd.core.function.Consumer;
 import io.termd.core.function.Supplier;
+import io.termd.core.telnet.ExtTelnetTtyConnection;
 import io.termd.core.telnet.TelnetHandler;
-import io.termd.core.telnet.TelnetTtyConnection;
 import io.termd.core.tty.TtyConnection;
 import io.termd.core.util.CompletableFuture;
 import io.termd.core.util.Helper;
+
+import java.nio.charset.Charset;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -102,7 +101,7 @@ public class NettyHttpTelnetTtyBootstrap {
         httpTelnetTtyBootstrap.start(new Supplier<TelnetHandler>() {
             @Override
             public TelnetHandler get() {
-                return new TelnetTtyConnection(inBinary, outBinary, charset, factory);
+                return new ExtTelnetTtyConnection(inBinary, outBinary, charset, factory);
             }
         }, factory, doneHandler);
     }

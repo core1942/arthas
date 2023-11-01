@@ -140,9 +140,9 @@
                             <compilerProvider>generic-classic</compilerProvider>
                             <compilerExecutable>g++</compilerExecutable>
                             <compilerStartOptions>
-                                <compilerStartOption>-I${JAVA_HOME}/include</compilerStartOption>
-                                <compilerStartOption>-I${JAVA_HOME}/include/${os_name}</compilerStartOption>
-                                <compilerStartOption>-I${project.build.directory}/native/include</compilerStartOption>
+                                <compilerStartOption>-I&quot;${JAVA_HOME}/include&quot;</compilerStartOption>
+                                <compilerStartOption>-I&quot;${JAVA_HOME}/include/${os_name}&quot;</compilerStartOption>
+                                <compilerStartOption>-I&quot;${project.build.directory}/native/include&quot;</compilerStartOption>
                                 <compilerStartOption>${os_arch_option}</compilerStartOption>
                                 <compilerStartOption>-fpic</compilerStartOption>
                                 <compilerStartOption>-shared</compilerStartOption>
@@ -225,9 +225,9 @@
                     <compilerProvider>generic-classic</compilerProvider>
                     <compilerExecutable>g++</compilerExecutable>
                     <compilerStartOptions>
-                        <compilerStartOption>-I${JAVA_HOME}/include</compilerStartOption>
-                        <compilerStartOption>-I${JAVA_HOME}/include/${os_name}</compilerStartOption>
-                        <compilerStartOption>-I${project.build.directory}/native/include</compilerStartOption>
+                        <compilerStartOption>-I&quot;${JAVA_HOME}/include&quot;</compilerStartOption>
+                        <compilerStartOption>-I&quot;${JAVA_HOME}/include/${os_name}&quot;</compilerStartOption>
+                        <compilerStartOption>-I&quot;${project.build.directory}/native/include&quot;</compilerStartOption>
                         <compilerStartOption>${os_arch_option}</compilerStartOption>
                         <compilerStartOption>-fpic</compilerStartOption>
                         <compilerStartOption>-shared</compilerStartOption>

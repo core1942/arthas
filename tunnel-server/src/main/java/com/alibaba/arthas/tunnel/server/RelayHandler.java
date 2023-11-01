@@ -1,14 +1,13 @@
 package com.alibaba.arthas.tunnel.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class RelayHandler extends ChannelInboundHandlerAdapter {
 
@@ -29,9 +28,20 @@ public final class RelayHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (relayChannel.isActive()) {
             relayChannel.writeAndFlush(msg);
+            if (!relayChannel.isWritable()) {
+                ctx.channel().config().setAutoRead(false);
+            }
         } else {
             ReferenceCountUtil.release(msg);
         }
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        if (ctx.channel().isWritable()) {
+            relayChannel.config().setAutoRead(true);
+        }
+        super.channelWritabilityChanged(ctx);
     }
 
     @Override

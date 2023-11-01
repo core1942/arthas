@@ -45,6 +45,8 @@ onMounted(() => {
       fitAddon.fit();
     }
   });
+
+
 });
 
 /** get params in url **/

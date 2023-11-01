@@ -1,14 +1,13 @@
 package com.taobao.arthas.core.command.basic1000;
 
+import com.alibaba.arthas.deps.org.slf4j.Logger;
+import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
 import com.taobao.arthas.core.command.Constants;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.CommandProcess;
-import com.taobao.middleware.cli.annotations.Argument;
-import com.taobao.middleware.cli.annotations.DefaultValue;
-import com.taobao.middleware.cli.annotations.Description;
-import com.taobao.middleware.cli.annotations.Name;
-import com.taobao.middleware.cli.annotations.Option;
-import com.taobao.middleware.cli.annotations.Summary;
+import com.taobao.middleware.cli.annotations.*;
+
+import java.util.List;
 
 /**
  * @see com.taobao.arthas.core.shell.command.internal.GrepHandler
@@ -24,7 +23,13 @@ import com.taobao.middleware.cli.annotations.Summary;
         " thread | grep -m 10 -e  \"TIMED_WAITING|WAITING\"\n"
         + Constants.WIKI + Constants.WIKI_HOME + "grep")
 public class GrepCommand extends AnnotatedCommand {
+    private static final Logger logger = LoggerFactory.getLogger(GrepCommand.class);
+
+    private volatile boolean interrupt = false;
+    private volatile boolean close = false;
     private String pattern;
+    private List<String> files;
+    private String encoding;
     private boolean ignoreCase;
 
     /**
@@ -52,11 +57,6 @@ public class GrepCommand extends AnnotatedCommand {
     private int afterLines;
 
     /**
-     * print NUM lines of output context
-     */
-    private int context;
-
-    /**
      * stop after NUM selected lines
      */
     private int maxCount;
@@ -65,6 +65,18 @@ public class GrepCommand extends AnnotatedCommand {
     @Description("Pattern")
     public void setOptionName(String pattern) {
         this.pattern = pattern;
+    }
+
+    @Argument(argName = "files", index = 1, required = false)
+    @Description("files")
+    public void setFiles(List<String> files) {
+        this.files = files;
+    }
+
+    @Option(longName = "encoding")
+    @Description("File encoding")
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 
     @Option(shortName = "e", longName = "regex", flag = true)
@@ -113,7 +125,8 @@ public class GrepCommand extends AnnotatedCommand {
     @Option(shortName = "C", longName = "context")
     @Description("Print NUM lines of output context)")
     public void setContext(int context) {
-        this.context = context;
+        this.beforeLines = context;
+        this.afterLines = context;
     }
 
     @Option(shortName = "m", longName = "max-count")
@@ -158,9 +171,6 @@ public class GrepCommand extends AnnotatedCommand {
         return afterLines;
     }
 
-    public int getContext() {
-        return context;
-    }
 
     public int getMaxCount() {
         return maxCount;

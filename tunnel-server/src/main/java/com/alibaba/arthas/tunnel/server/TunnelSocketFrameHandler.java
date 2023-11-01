@@ -1,29 +1,10 @@
 
 package com.alibaba.arthas.tunnel.server;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.alibaba.arthas.tunnel.common.MethodConstants;
 import com.alibaba.arthas.tunnel.common.SimpleHttpResponse;
 import com.alibaba.arthas.tunnel.common.URIConstans;
 import com.alibaba.arthas.tunnel.server.utils.HttpUtils;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -40,6 +21,23 @@ import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
+import io.netty.util.concurrent.*;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.UnsupportedEncodingException;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -136,14 +134,22 @@ public class TunnelSocketFrameHandler extends SimpleChannelInboundHandler<WebSoc
     private void connectArthas(ChannelHandlerContext tunnelSocketCtx, MultiValueMap<String, String> parameters)
             throws URISyntaxException {
 
-        List<String> agentId = parameters.getOrDefault("id", Collections.emptyList());
+        List<String> agentIds = parameters.getOrDefault("id", Collections.emptyList());
 
-        if (agentId.isEmpty()) {
+        if (agentIds.isEmpty()) {
             logger.error("arthas agent id can not be null, parameters: {}", parameters);
             throw new IllegalArgumentException("arthas agent id can not be null");
         }
 
-        logger.info("try to connect to arthas agent, id: " + agentId.get(0));
+        logger.info("try to connect to arthas agent, id: " + agentIds.get(0));
+
+        List<String> agentId = agentIds.stream().map(s -> {
+            try {
+                return URLDecoder.decode(s, StandardCharsets.UTF_8.name());
+            } catch (UnsupportedEncodingException e) {
+                return s;
+            }
+        }).collect(Collectors.toList());
 
         Optional<AgentInfo> findAgent = tunnelServer.findAgent(agentId.get(0));
 
