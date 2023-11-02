@@ -1,12 +1,15 @@
-import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import * as path from "path";
+import AutoImport from "unplugin-auto-import/vite";
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import Components from "unplugin-vue-components/vite";
+import { defineConfig, loadEnv } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const proxyTarget =
-    `${env.VITE_ARTHAS_PROXY_IP}:${env.VITE_ARTHAS_PROXY_PORT}`;
+      `${ env.VITE_ARTHAS_PROXY_IP }:${ env.VITE_ARTHAS_PROXY_PORT }`;
 
   console.log("Arthas proxy :", proxyTarget);
   let outDir, input, root, proxy, base;
@@ -14,7 +17,7 @@ export default defineConfig(({ mode }) => {
   if (mode === "tunnel") {
     outDir = path.resolve(__dirname, `dist/tunnel`);
     root = "./all/tunnel";
-    base = "./"
+    base = "./";
     input = {
       tunnel: path.resolve(__dirname, "all/tunnel/index.html"),
       apps: path.resolve(__dirname, "all/tunnel/apps.html"),
@@ -22,13 +25,13 @@ export default defineConfig(({ mode }) => {
     };
     proxy = {
       "/api": {
-        target: `http://${proxyTarget}`,
+        target: `http://${ proxyTarget }`,
         changeOrigin: true,
       },
     };
   } else if (mode === "ui") {
     outDir = path.resolve(__dirname, `dist/ui`);
-    base = "/"
+    base = "/";
     root = "./all/ui";
     input = {
       main: path.resolve(__dirname, "all/ui/index.html"),
@@ -36,16 +39,26 @@ export default defineConfig(({ mode }) => {
     };
     proxy = {
       "/api": {
-        target: `http://${proxyTarget}`,
+        target: `http://${ proxyTarget }`,
         changeOrigin: true,
       },
     };
   }
 
   return {
-    plugins: [vue({
-      reactivityTransform: path.resolve(__dirname, "all/ui"),
-    })],
+    plugins: [
+      vue({
+        reactivityTransform: path.resolve(__dirname, "all/ui"),
+      }),
+      AutoImport({
+        resolvers: [ElementPlusResolver()],
+        dts: true,
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()],
+        dts: true,
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "all/ui/ui/src"),
@@ -75,7 +88,7 @@ export default defineConfig(({ mode }) => {
     publicDir: path.resolve(__dirname, "all/share/public"),
     root,
     server: {
-      proxy
+      proxy,
     },
   };
 });
