@@ -1,6 +1,7 @@
 package com.taobao.arthas.core.shell.term;
 
 import com.taobao.arthas.core.shell.handlers.Handler;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Provide interactions with the Shell TTY.
@@ -33,6 +34,13 @@ public interface Tty {
      */
     Tty stdinHandler(Handler<String> handler);
 
+
+    default Tty binaryHandler(Handler<ByteBuf> handler) {
+        return null;
+    }
+
+    Tty writeBinary(boolean isFinal, boolean isContinue, byte[] data);
+
     /**
      * Write data to the standard output.
      *
@@ -48,5 +56,4 @@ public interface Tty {
      * @return this object
      */
     Tty resizehandler(Handler<Void> handler);
-
 }

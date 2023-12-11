@@ -98,12 +98,7 @@ public class NettyHttpTelnetTtyBootstrap {
     }
 
     public void start(final Consumer<TtyConnection> factory, Consumer<Throwable> doneHandler) {
-        httpTelnetTtyBootstrap.start(new Supplier<TelnetHandler>() {
-            @Override
-            public TelnetHandler get() {
-                return new ExtTelnetTtyConnection(inBinary, outBinary, charset, factory);
-            }
-        }, factory, doneHandler);
+        httpTelnetTtyBootstrap.start(() -> new ExtTelnetTtyConnection(inBinary, outBinary, charset, factory), factory, doneHandler);
     }
 
     public void stop(Consumer<Throwable> doneHandler) {

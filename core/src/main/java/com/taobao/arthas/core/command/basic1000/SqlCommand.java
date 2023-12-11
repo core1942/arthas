@@ -7,10 +7,7 @@ import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.cli.CompletionUtils;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.CommandProcess;
-import com.taobao.middleware.cli.annotations.Description;
-import com.taobao.middleware.cli.annotations.Name;
-import com.taobao.middleware.cli.annotations.Option;
-import com.taobao.middleware.cli.annotations.Summary;
+import com.taobao.middleware.cli.annotations.*;
 
 import java.io.File;
 
@@ -19,6 +16,13 @@ import java.io.File;
 public class SqlCommand extends AnnotatedCommand {
     private static final Logger logger = LoggerFactory.getLogger(SqlCommand.class);
     private String encoding;
+    private Integer port = 3307;
+
+    @Argument(argName = "port", index = 0)
+    @Description("数据库端口，默认：3307")
+    public void setPath(Integer port) {
+        this.port = port;
+    }
 
     @Option(longName = "encoding")
     @Description("File encoding")
@@ -50,7 +54,7 @@ public class SqlCommand extends AnnotatedCommand {
                 }
                 mysqlCommand = canonicalPath2;
             }
-            String args = " -uroot -pqmai@2021 -tn";
+            String args = " -uroot -pqmai@2021 -P" + port + " -tn";
             String command = mysqlCommand + args;
             ExecCommand.runCmd(process, command, encoding);
         } catch (Exception e) {

@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.alibaba.arthas.tunnel.server.app.Apps;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,21 +39,21 @@ public class DetailAPIController {
     private TunnelClusterStore tunnelClusterStore;
 
     public static void main(String[] args) {
-        String str = "PRO:企迈正餐演示-企迈小中餐演示门店（正餐一体化）:215968-182500:(20230831211306)";
-        String[] split = StringUtils.split(str, ":-");
+        String str = "企迈正餐演示企迈小中餐演示门店（正餐一体化）";
+        String[] split = StringUtils.split(str, "-", 2);
         System.out.println(Arrays.toString(split));
     }
 
     @RequestMapping("/api/tunnelApps")
     @ResponseBody
-    public Set<String> tunnelApps(HttpServletRequest request, Model model) {
+    public List<Apps> tunnelApps(HttpServletRequest request, Model model) {
         if (!arthasProperties.isEnableDetailPages()) {
             throw new IllegalAccessError("not allow");
         }
         if (tunnelClusterStore != null) {
             return tunnelClusterStore.allAgentIds();
         }
-        return Collections.emptySet();
+        return Collections.emptyList();
     }
 
     @RequestMapping("/api/tunnelAgentInfo")

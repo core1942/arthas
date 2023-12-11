@@ -24,6 +24,7 @@ import com.taobao.arthas.core.shell.system.ProcessAware;
 import com.taobao.arthas.core.shell.term.Tty;
 import com.taobao.middleware.cli.CLIException;
 import com.taobao.middleware.cli.CommandLine;
+import io.netty.buffer.ByteBuf;
 import io.termd.core.function.Function;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -471,6 +472,14 @@ public class ProcessImpl implements Process {
         }
 
         @Override
+        public CommandProcess binaryHandler(Handler<ByteBuf> handler) {
+            if (processForeground && handler != null) {
+                tty.binaryHandler(handler);
+            }
+            return this;
+        }
+
+        @Override
         public CommandProcess write(String data) {
             synchronized (ProcessImpl.this) {
                 if (processStatus != ExecStatus.RUNNING) {
@@ -479,6 +488,18 @@ public class ProcessImpl implements Process {
                 }
             }
             processOutput.write(data);
+            return this;
+        }
+
+        @Override
+        public CommandProcess writeBinary(ByteBuf data) {
+            synchronized (ProcessImpl.this) {
+                if (processStatus != ExecStatus.RUNNING) {
+                    throw new IllegalStateException(
+                            "Cannot write to standard output when " + status().name().toLowerCase());
+                }
+            }
+            processOutput.writeBinary(data);
             return this;
         }
 
@@ -648,13 +669,18 @@ public class ProcessImpl implements Process {
         private void write(String data) {
             if (stdoutHandlerChain != null) {
                 //hotspot, reduce memory fragment (foreach/iterator)
-                int size = stdoutHandlerChain.size();
                 for (Function<String, String> function : stdoutHandlerChain) {
                     data = function.apply(data);
                     if (data == null) {
                         break;
                     }
                 }
+            }
+        }
+
+        private void writeBinary(ByteBuf data) {
+            if (stdoutHandlerChain != null) {
+                term.writeBinary(data);
             }
         }
 
