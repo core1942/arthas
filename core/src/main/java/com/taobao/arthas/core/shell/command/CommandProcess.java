@@ -7,6 +7,7 @@ import com.taobao.arthas.core.shell.handlers.Handler;
 import com.taobao.arthas.core.shell.session.Session;
 import com.taobao.arthas.core.shell.term.Tty;
 import com.taobao.middleware.cli.CommandLine;
+import io.netty.buffer.ByteBuf;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.util.List;
@@ -88,6 +89,8 @@ public interface CommandProcess extends Tty {
      * @return a reference to this, so the API can be used fluently
      */
     CommandProcess write(String data);
+
+    CommandProcess writeBinary(boolean isFinal, boolean isContinue, byte[] data);
 
     /**
      * Set a background handler, this handler is called when the command is running and put to background.

@@ -12,6 +12,7 @@ import io.termd.core.util.Helper;
 import io.termd.core.util.Vector;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ExtTelnetTtyConnection extends TelnetHandler implements TtyConnection {
 
-    private static final Charset US_ASCII = Charset.forName("US-ASCII");
+    private static final Charset US_ASCII = StandardCharsets.US_ASCII;
 
     private final boolean inBinary;
     private final boolean outBinary;
@@ -37,12 +38,7 @@ public class ExtTelnetTtyConnection extends TelnetHandler implements TtyConnecti
     protected ExtTelnetConnection conn;
     private final Charset charset;
     private final TtyEventDecoder eventDecoder = new TtyEventDecoder(3, 26, 4);
-    private final ReadBuffer readBuffer = new ReadBuffer(new Executor() {
-        @Override
-        public void execute(Runnable command) {
-            ExtTelnetTtyConnection.this.execute(command);
-        }
-    });
+    private final ReadBuffer readBuffer = new ReadBuffer(ExtTelnetTtyConnection.this::execute);
 
     private final BinaryDecoder decoder;
     private final ExtBinaryEncoder extencoder;
@@ -60,19 +56,9 @@ public class ExtTelnetTtyConnection extends TelnetHandler implements TtyConnecti
         this.handler = handler;
         this.size = new Vector();
         this.decoder = new BinaryDecoder(512, TelnetCharset.INSTANCE, readBuffer);
-        this.extencoder = new ExtBinaryEncoder(charset, new Function<byte[], ChannelFuture>() {
-            @Override
-            public ChannelFuture apply(byte[] data) {
-                return conn.writeAndFlush(data);
-            }
-        });
+        this.extencoder = new ExtBinaryEncoder(charset, data -> conn.writeAndFlush(data));
         this.extstdout = new ExtTtyOutputMode(extencoder);
-        this.encoder = new BinaryEncoder(charset, new Consumer<byte[]>() {
-            @Override
-            public void accept(byte[] data) {
-                conn.write(data);
-            }
-        });
+        this.encoder = new BinaryEncoder(charset, data -> conn.write(data));
         this.stdout = new TtyOutputMode(encoder);
     }
 

@@ -19,9 +19,7 @@ package com.taobao.arthas.core.shell.term.impl.http;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.*;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.termd.core.function.Consumer;
 import io.termd.core.http.HttpTtyConnection;
@@ -31,12 +29,12 @@ import io.termd.core.tty.TtyConnection;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class TtyWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+public class TtyWebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
   private final ChannelGroup group;
   private final Consumer<TtyConnection> handler;
   private ChannelHandlerContext context;
-  private HttpTtyConnection conn;
+  private ExtHttpTtyConnection conn;
 
   public TtyWebSocketFrameHandler(ChannelGroup group, Consumer<TtyConnection> handler) {
     this.group = group;
@@ -77,7 +75,11 @@ public class TtyWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWe
   }
 
   @Override
-  public void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-    conn.writeToDecoder(msg.text());
+  public void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
+    if (frame instanceof TextWebSocketFrame) {
+      conn.writeToDecoder(((TextWebSocketFrame) frame).text());
+    } else {
+      conn.readBinary(frame.content());
+    }
   }
 }

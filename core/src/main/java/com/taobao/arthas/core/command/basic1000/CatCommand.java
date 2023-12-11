@@ -3,6 +3,7 @@ package com.taobao.arthas.core.command.basic1000;
 import com.alibaba.arthas.deps.org.slf4j.Logger;
 import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
 import com.taobao.arthas.core.command.model.CatModel;
+import com.taobao.arthas.core.server.ArthasBootstrap;
 import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.cli.CompletionUtils;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
@@ -62,7 +63,7 @@ public class CatCommand extends AnnotatedCommand {
     public void process(CommandProcess process) {
 
         for (String file : files) {
-            file = System.getProperty("user.dir") + "/" + file;
+            file = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR) + "/" + file;
             File f = new File(file);
             if (!f.exists()) {
                 process.end(-1, "cat " + file + ": No such file or directory");

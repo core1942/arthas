@@ -49,12 +49,7 @@ public class HttpTermServer extends TermServer {
         // TODO: charset and inputrc from options
         bootstrap = new NettyWebsocketTtyBootstrap(workerGroup, httpSessionManager).setHost(hostIp).setPort(port);
         try {
-            bootstrap.start(new Consumer<TtyConnection>() {
-                @Override
-                public void accept(final TtyConnection conn) {
-                    termHandler.handle(new TermImpl(Helper.loadKeymap(), conn));
-                }
-            }).get(connectionTimeout, TimeUnit.MILLISECONDS);
+            bootstrap.start(conn -> termHandler.handle(new TermImpl(Helper.loadKeymap(), conn))).get(connectionTimeout, TimeUnit.MILLISECONDS);
             listenHandler.handle(Future.<TermServer>succeededFuture());
         } catch (Throwable t) {
             logger.error("Error listening to port " + port, t);

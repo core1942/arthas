@@ -1,11 +1,15 @@
 package com.alibaba.arthas.tunnel.server.cluster;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.alibaba.arthas.tunnel.server.AppInfo;
+import com.alibaba.arthas.tunnel.server.app.Apps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -19,7 +23,6 @@ import com.alibaba.arthas.tunnel.server.AgentClusterInfo;
  *
  */
 public class InMemoryClusterStore implements TunnelClusterStore {
-    private final static Logger logger = LoggerFactory.getLogger(InMemoryClusterStore.class);
     private static final Map<String, Map<String, AgentClusterInfo>> CACHE = new ConcurrentHashMap<>();
     // private Cache cache;
 
@@ -56,8 +59,24 @@ public class InMemoryClusterStore implements TunnelClusterStore {
     }
 
     @Override
-    public Set<String> allAgentIds() {
-        return CACHE.keySet();
+    public List<Apps> allAgentIds() {
+        return CACHE.keySet().stream().map(s -> {
+            Map<String, AgentClusterInfo> stringAgentClusterInfoMap = CACHE.get(s);
+            Apps apps = new Apps();
+            String[] split = StringUtils.split(s, "-", 2);
+            apps.setSellerName(split[0]);
+            if (split.length > 1) {
+                apps.setSellerId(split[1]);
+            }else {
+                apps.setSellerId(StringUtils.EMPTY);
+            }
+            if (stringAgentClusterInfoMap != null) {
+                apps.setStoreNum(stringAgentClusterInfoMap.size());
+            } else {
+                apps.setStoreNum(0);
+            }
+            return apps;
+        }).collect(Collectors.toList());
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.alibaba.arthas.tunnel.server.cluster;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.arthas.tunnel.server.app.Apps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -68,21 +69,22 @@ public class RedisTunnelClusterStore implements TunnelClusterStore {
     }
 
     @Override
-    public Set<String> allAgentIds() {
-        ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
-
-        int length = prefix.length();
-        final Set<String> redisValues = opsForValue.getOperations().keys(prefix + "*");
-        if (redisValues != null) {
-            final Set<String> result = new HashSet<>(redisValues.size());
-            for (String value : redisValues) {
-                result.add(value.substring(length));
-            }
-            return result;
-        } else {
-            logger.error("try to get allAgentIds error. redis returned null.");
-            return Collections.emptySet();
-        }
+    public List<Apps> allAgentIds() {
+        // ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
+        //
+        // int length = prefix.length();
+        // final Set<String> redisValues = opsForValue.getOperations().keys(prefix + "*");
+        // if (redisValues != null) {
+        //     final Set<String> result = new HashSet<>(redisValues.size());
+        //     for (String value : redisValues) {
+        //         result.add(value.substring(length));
+        //     }
+        //     return result;
+        // } else {
+        //     logger.error("try to get allAgentIds error. redis returned null.");
+        //     return Collections.emptySet();
+        // }
+        return Collections.emptyList();
     }
 
     @Override

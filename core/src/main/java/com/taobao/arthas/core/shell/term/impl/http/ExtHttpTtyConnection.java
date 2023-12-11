@@ -1,19 +1,27 @@
 package com.taobao.arthas.core.shell.term.impl.http;
 
 import com.taobao.arthas.common.ArthasConstants;
+import com.taobao.arthas.core.shell.handlers.Handler;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSession;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.termd.core.function.Function;
 import io.termd.core.http.HttpTtyConnection;
 import io.termd.core.telnet.ExtBinaryEncoder;
 import io.termd.core.tty.ExtTtyOutputMode;
 import io.termd.core.util.Helper;
 
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,14 +36,10 @@ import java.util.concurrent.TimeUnit;
 public class ExtHttpTtyConnection extends HttpTtyConnection {
     private ChannelHandlerContext context;
     private final Function<int[], ChannelFuture> extstdout;
+    private Handler<ByteBuf> binaryHandler;
 
     public ExtHttpTtyConnection(ChannelHandlerContext context) {
-        this.extstdout = new ExtTtyOutputMode(new ExtBinaryEncoder(Charset.forName("UTF-8"), new Function<byte[], ChannelFuture>() {
-            @Override
-            public ChannelFuture apply(byte[] bytes) {
-               return writeAndFlush(bytes);
-            }
-        }));
+        this.extstdout = new ExtTtyOutputMode(new ExtBinaryEncoder(StandardCharsets.UTF_8, this::writeAndFlush));
         this.context = context;
     }
 
@@ -49,9 +53,26 @@ public class ExtHttpTtyConnection extends HttpTtyConnection {
     }
 
     protected ChannelFuture writeAndFlush(byte[] buffer) {
-        ByteBuf byteBuf = context.alloc().buffer();
-        byteBuf.writeBytes(buffer);
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(buffer);
         return context.writeAndFlush(new TextWebSocketFrame(byteBuf));
+    }
+
+
+    public void writeAndFlush(boolean isFinal, boolean isContinue, byte[] data) {
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(data);
+        WebSocketFrame webSocketFrame;
+        if (isContinue) {
+            webSocketFrame = new ContinuationWebSocketFrame(isFinal, 0, byteBuf);
+        } else {
+            webSocketFrame = new BinaryWebSocketFrame(isFinal, 0, byteBuf);
+        }
+        context.writeAndFlush(webSocketFrame);
+    }
+
+    public void readBinary(ByteBuf byteBuf) {
+        if (binaryHandler != null) {
+            binaryHandler.handle(byteBuf);
+        }
     }
 
     public ChannelFuture writeAndFlush(String s) {
@@ -95,4 +116,11 @@ public class ExtHttpTtyConnection extends HttpTtyConnection {
         return Collections.emptyMap();
     }
 
+    public Handler<ByteBuf> getBinaryHandler() {
+        return binaryHandler;
+    }
+
+    public void setBinaryHandler(Handler<ByteBuf> binaryHandler) {
+        this.binaryHandler = binaryHandler;
+    }
 }

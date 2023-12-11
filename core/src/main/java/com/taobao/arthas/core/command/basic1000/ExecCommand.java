@@ -98,7 +98,6 @@ public class ExecCommand extends AnnotatedCommand {
 
     @Override
     public void process(final CommandProcess process) {
-
         if (command.startsWith("./")) {
             String nowPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR);
             command = nowPath + "/" + command;
@@ -116,7 +115,7 @@ public class ExecCommand extends AnnotatedCommand {
                     // .setConsole(true)
                     .setCommand(cmd)
                     .setInitialColumns(process.width())
-                    .setInitialRows((int) (process.height()*0.8))
+                    .setInitialRows((int) (process.height()*0.9))
                     .setEnvironment(env)
                     .start();
             OutputStream os = pt.getOutputStream();
@@ -140,7 +139,7 @@ public class ExecCommand extends AnnotatedCommand {
                 }
             });
             threadStdout.start();
-            process.resizehandler(event -> pt.setWinSize(new WinSize(process.width(), (int) (process.height()*0.8))));
+            process.resizehandler(event -> pt.setWinSize(new WinSize(process.width(), (int) (process.height() * 0.9))));
             process.interruptHandler(event -> {
                 try {
                     bufferedWriter.write(CTRL_C);
@@ -164,8 +163,6 @@ public class ExecCommand extends AnnotatedCommand {
                     process.write(e.getMessage());
                 }
             });
-
-
         } catch (Exception e) {
             process.end(-1, e.getMessage());
         }
