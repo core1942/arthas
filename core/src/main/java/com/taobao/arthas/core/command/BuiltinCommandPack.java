@@ -84,6 +84,9 @@ public class BuiltinCommandPack implements CommandResolver {
         commandClassList.add(GrepCommand.class);
         commandClassList.add(TeeCommand.class);
         commandClassList.add(ProfilerCommand.class);
+        commandClassList.add(SzCommand.class);
+        commandClassList.add(RzCommand.class);
+        commandClassList.add(RmCommand.class);
         // commandClassList.add(VmToolCommand.class);
         commandClassList.add(StopCommand.class);
         try {

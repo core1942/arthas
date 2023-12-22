@@ -1,5 +1,6 @@
 package com.taobao.arthas.core.shell.cli;
 
+import com.taobao.arthas.core.server.ArthasBootstrap;
 import com.taobao.arthas.core.shell.session.Session;
 import com.taobao.arthas.core.shell.term.Tty;
 import com.taobao.arthas.core.util.SearchUtils;
@@ -102,7 +103,7 @@ public class CompletionUtils {
         } else if (isEndOfDirectory(token)) {
             dir = new File(token);
         } else {
-            File parent = new File(token).getAbsoluteFile().getParentFile();
+            File parent = new File(System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR)+"/"+token).getAbsoluteFile().getParentFile();
             if (parent != null && parent.exists()) {
                 dir = parent;
                 partName = new File(token).getName();

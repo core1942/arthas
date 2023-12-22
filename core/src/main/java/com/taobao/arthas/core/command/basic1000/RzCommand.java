@@ -7,6 +7,7 @@ import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.cli.CompletionUtils;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.CommandProcess;
+import com.taobao.arthas.core.util.StringUtils;
 import com.taobao.middleware.cli.annotations.*;
 
 import java.io.*;
@@ -18,7 +19,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 @Name("rz")
-@Summary("上传文件")
+@Summary("upload file")
 public class RzCommand extends AnnotatedCommand {
     private volatile boolean interrupt = false;
     private volatile boolean close = false;
@@ -37,38 +38,39 @@ public class RzCommand extends AnnotatedCommand {
         process.endHandler(event -> close = true);
         UploadData uploadData = new UploadData();
         process.stdinHandler(event -> {
-            process.stdinHandler(null);
-            String[] split = event.split(SPLIT);
-            if (split.length == 2) {
-                String fileName = split[0];
-                String targetFilePath = currentPath + "/" + fileName;
-                File file = Paths.get(targetFilePath).toFile();
-                uploadData.setCount(new BigDecimal(Long.parseLong(split[1])));
-                uploadData.setFile(file);
-                if (file.exists()) {
-                    process.writeBinary(CONFIRM_EVENT);
-                    process.stdinHandler(confirm -> {
-                        process.stdinHandler(null);
-                        if ("y".equalsIgnoreCase(confirm)) {
-                            downloadFile(process, uploadData);
-                        } else {
-                            process.writeBinary(CANCEL_EVENT);
-                        }
-                    });
-                }else {
-                    downloadFile(process, uploadData);
-                }
-                if (interrupt) {
-                    process.writeBinary(CANCEL_EVENT);
+            process.stdinHandler(e->{});
+            if ("cancel".equals(event) || StringUtils.isBlank(event)) {
+                process.writeBinary(CANCEL_EVENT);
+                process.end(0, "\n");
+            } else {
+                String[] split = event.split(SPLIT);
+                if (split.length == 2) {
+                    String fileName = split[0];
+                    String targetFilePath = currentPath + "/" + fileName;
+                    File file = Paths.get(targetFilePath).toFile();
+                    uploadData.setCount(new BigDecimal(Long.parseLong(split[1])));
+                    uploadData.setFile(file);
+                    if (file.exists()) {
+                        process.writeBinary(CONFIRM_EVENT);
+                        process.stdinHandler(confirm -> {
+                            process.stdinHandler(e->{});
+                            if ("y".equalsIgnoreCase(confirm)) {
+                                downloadFile(process, uploadData);
+                            } else {
+                                process.writeBinary(CANCEL_EVENT);
+                                process.end(0,"\n");
+                            }
+                        });
+                    } else {
+                        downloadFile(process, uploadData);
+                    }
                 } else {
-                    process.writeBinary(END_EVENT);
+                    process.writeBinary(FAIL_EVENT);
+                    process.end(0,"\n");
                 }
-
             }
         });
-
-
-
+        process.writeBinary(START_EVENT);
     }
 
     private void downloadFile(CommandProcess process, UploadData uploadData) {
@@ -83,15 +85,16 @@ public class RzCommand extends AnnotatedCommand {
                             process.writeBinary(CANCEL_EVENT);
                         }
                         channel.close();
+                        process.end(0,"\n");
                     } else {
                         channel.write(byteBuf.nioBuffer());
                         BigDecimal percentage = new BigDecimal(byteBuf.readableBytes()).divide(uploadData.count, 4, RoundingMode.HALF_UP).movePointRight(2);
-                        process.write(percentage + "%");
+                        process.write("\r" + percentage + "%");
                         if (isFinal) {
                             process.binaryConsumer(null);
-                            process.write("100.00%");
                             process.writeBinary(END_EVENT);
                             channel.close();
+                            process.end(0);
                         }
                     }
                 } catch (Exception e) {
@@ -101,13 +104,15 @@ public class RzCommand extends AnnotatedCommand {
                     }
                     process.binaryConsumer(null);
                     process.writeBinary(FAIL_EVENT);
+                    process.end(0,"\n");
                 }
             });
+            process.writeBinary(START_EVENT);
         } catch (Exception e) {
+            process.binaryConsumer(null);
             process.writeBinary(FAIL_EVENT);
+            process.end(0,"\n");
         }
-        process.writeBinary(START_EVENT);
-
     }
 
 

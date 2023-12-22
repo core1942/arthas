@@ -49,17 +49,6 @@ public class ExecCommand extends AnnotatedCommand {
         return encoding;
     }
 
-    public static void main2(String[] args) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        CharBuffer charBuffer = CharBuffer.allocate(5);
-        while (bufferedReader.read(charBuffer) != -1) {
-            charBuffer.flip();
-            String str = charBuffer.toString();
-            charBuffer.clear();
-            System.out.println(str);
-        }
-    }
-
     public static void main(String[] args) throws IOException {
         final ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", "C:/Users/Art/Desktop/s/mysql  -hshard01.mysql.db.zmcms.cn -udinnerdev -pdinnerdev2022 -tn");
         processBuilder.redirectErrorStream(true);
@@ -167,91 +156,6 @@ public class ExecCommand extends AnnotatedCommand {
             process.end(-1, e.getMessage());
         }
     }
-
-
-    // @Override
-    // public void process(final CommandProcess process) {
-    //
-    //     try {
-    //         if (command.startsWith("./")) {
-    //             String nowPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR);
-    //             command = nowPath + "/" + command;
-    //         }
-    //         // final ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", command);
-    //         final ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
-    //         processBuilder.redirectErrorStream(true);
-    //         final Process p = processBuilder.start();
-    //         process.write("...> ");
-    //         final BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(p.getOutputStream(), encoding == null ? Charset.forName("GBK") : Charset.forName(encoding)));
-    //         process.interruptHandler(new Handler<Void>() {
-    //             @Override
-    //             public void handle(Void event) {
-    //                 try {
-    //                     bufferedWriter.write(CTRL_C);
-    //                 } catch (Exception e) {
-    //                     process.write(e.getMessage());
-    //                 }
-    //             }
-    //         });
-    //         process.endHandler(new Handler<Void>() {
-    //             @Override
-    //             public void handle(Void event) {
-    //                 try {
-    //                     close = true;
-    //                     p.destroy();
-    //                 } finally {
-    //                     process.end();
-    //                 }
-    //             }
-    //         });
-    //         process.stdinHandler(new Handler<String>() {
-    //             List<String> list = new ArrayList<String>();
-    //             @Override
-    //             public void handle(String event) {
-    //                 try {
-    //                     list.add(event);
-    //                     process.write(event);
-    //                     if (event.contains("\n") || event.contains("\r")) {
-    //                         String cmd = "";
-    //                         for (String s : list) {
-    //                             cmd += s;
-    //                         }
-    //                         bufferedWriter.write(cmd + "\n");
-    //                         bufferedWriter.flush();
-    //                         list.clear();
-    //                         process.write("\n...> ");
-    //                     }
-    //                 } catch (Exception e) {
-    //                     process.write(e.getMessage());
-    //                 }
-    //             }
-    //         });
-    //         final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(p.getInputStream(), encoding == null ? Charset.forName("GBK") : Charset.forName(encoding)));
-    //         new Thread(new Runnable(){
-    //
-    //             @Override
-    //             public void run() {
-    //                 try {
-    //                     CharBuffer charBuffer = CharBuffer.allocate(1024);
-    //                     while (!close && bufferedReader.read(charBuffer) != -1) {
-    //                         charBuffer.flip();
-    //                         String str = charBuffer.toString();
-    //                         charBuffer.clear();
-    //                         process.write(str);
-    //                     }
-    //                 } catch (Exception e) {
-    //                     process.write(e.getMessage());
-    //                 }finally {
-    //                     process.end();
-    //                 }
-    //             }
-    //         }).start();
-    //
-    //
-    //     } catch (Exception e) {
-    //         process.end(-1,e.getMessage());
-    //     }
-    // }
 
 
     @Override

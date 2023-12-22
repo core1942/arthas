@@ -95,6 +95,9 @@ public class InMemoryClusterStore implements TunnelClusterStore {
         }
     }
 
+    /**
+     * java -jar arthas-boot.jar --tunnel-server "ws://127.0.0.1:7777/ws" --app-name "PRO:qmaiasstant-zxapp:215968-182501:(20230831211307)_XdfertSDfdgwer"
+     */
     public static AppInfo parseInfo(String agentId) {
         String appName = findAppNameFromAgentId(agentId);
         String[] split = StringUtils.split(appName, ":-");

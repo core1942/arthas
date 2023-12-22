@@ -24,7 +24,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 @Name("sz")
-@Summary("下载文件")
+@Summary("download file")
 public class SzCommand extends AnnotatedCommand {
     private volatile boolean interrupt = false;
     private volatile boolean close = false;
@@ -75,6 +75,7 @@ public class SzCommand extends AnnotatedCommand {
         if (interrupt) {
             process.writeBinary(CANCEL_EVENT);
         }
+        process.end();
     }
 
 
@@ -82,28 +83,6 @@ public class SzCommand extends AnnotatedCommand {
     public void complete(Completion completion) {
         if (!CompletionUtils.completeFilePath(completion)) {
             super.complete(completion);
-        }
-    }
-
-
-    static class UploadData{
-       private long count;
-        private FileOutputStream fileOutputStream;
-
-        public long getCount() {
-            return count;
-        }
-
-        public void setCount(long count) {
-            this.count = count;
-        }
-
-        public FileOutputStream getFileOutputStream() {
-            return fileOutputStream;
-        }
-
-        public void setFileOutputStream(FileOutputStream fileOutputStream) {
-            this.fileOutputStream = fileOutputStream;
         }
     }
 

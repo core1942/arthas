@@ -19,7 +19,7 @@ public class SqlCommand extends AnnotatedCommand {
     private Integer port = 3307;
 
     @Argument(argName = "port", index = 0)
-    @Description("数据库端口，默认：3307")
+    @Description("port default：3307")
     public void setPath(Integer port) {
         this.port = port;
     }
