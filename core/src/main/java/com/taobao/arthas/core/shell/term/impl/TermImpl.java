@@ -2,14 +2,9 @@ package com.taobao.arthas.core.shell.term.impl;
 
 import java.io.*;
 import java.lang.reflect.Proxy;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.taobao.arthas.common.ArthasConstants;
 import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.handlers.Handler;
 import com.taobao.arthas.core.shell.handlers.term.CloseHandlerWrapper;
@@ -27,6 +22,7 @@ import com.taobao.arthas.core.util.FileUtils;
 import io.netty.buffer.*;
 import io.netty.channel.ChannelFuture;
 
+import io.termd.core.function.BiConsumer;
 import io.termd.core.function.Consumer;
 import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
@@ -181,13 +177,13 @@ public class TermImpl implements Term {
     }
 
     @Override
-    public Term binaryHandler(final Handler<ByteBuf> handler) {
+    public Term binaryConsumer(final BiConsumer<Boolean, ByteBuf> consumer) {
         if (inReadline) {
             throw new IllegalStateException();
         }
         if (conn instanceof ExtHttpTtyConnection) {
             ExtHttpTtyConnection extHttpTtyConnection = (ExtHttpTtyConnection) conn;
-            extHttpTtyConnection.setBinaryHandler(handler);
+            extHttpTtyConnection.setConsumer(consumer);
         }
         return this;
     }
@@ -195,7 +191,7 @@ public class TermImpl implements Term {
     @Override
     public Term stdoutHandler(io.termd.core.function.Function<String, String>  handler) {
         if (stdoutHandlerChain == null) {
-            stdoutHandlerChain = new ArrayList<io.termd.core.function.Function<String, String>>();
+            stdoutHandlerChain = new ArrayList<>();
         }
         stdoutHandlerChain.add(handler);
         return this;
@@ -216,9 +212,14 @@ public class TermImpl implements Term {
     public Term writeBinary(boolean isFinal, boolean isContinue, byte[] data) {
         if (conn instanceof ExtHttpTtyConnection) {
             ExtHttpTtyConnection extHttpTtyConnection = (ExtHttpTtyConnection) conn;
-            extHttpTtyConnection.writeAndFlush(isFinal, isContinue, data);
+            ChannelFuture channelFuture = extHttpTtyConnection.writeAndFlush(isFinal, isContinue, data);
+            if (!channelFuture.channel().isWritable()) {
+                try {
+                    channelFuture.sync();
+                } catch (Exception ignored) {
+                }
+            }
         }
-        // backPressure(conn, data);
         return this;
     }
 

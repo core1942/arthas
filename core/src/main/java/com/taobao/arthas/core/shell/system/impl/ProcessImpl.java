@@ -474,7 +474,7 @@ public class ProcessImpl implements Process {
         @Override
         public CommandProcess binaryHandler(Handler<ByteBuf> handler) {
             if (processForeground && handler != null) {
-                tty.binaryHandler(handler);
+                tty.binaryConsumer(handler);
             }
             return this;
         }
@@ -492,14 +492,20 @@ public class ProcessImpl implements Process {
         }
 
         @Override
-        public CommandProcess writeBinary(ByteBuf data) {
+        public CommandProcess writeBinary(boolean isFinal, boolean isContinue, byte[] data) {
             synchronized (ProcessImpl.this) {
                 if (processStatus != ExecStatus.RUNNING) {
                     throw new IllegalStateException(
                             "Cannot write to standard output when " + status().name().toLowerCase());
                 }
             }
-            processOutput.writeBinary(data);
+            processOutput.writeBinary(isFinal, isContinue, data);
+            return this;
+        }
+
+        @Override
+        public CommandProcess writeBinary(byte[] data) {
+            this.writeBinary(true, false, data);
             return this;
         }
 
@@ -678,9 +684,9 @@ public class ProcessImpl implements Process {
             }
         }
 
-        private void writeBinary(ByteBuf data) {
+        private void writeBinary(boolean isFinal, boolean isContinue, byte[] data) {
             if (stdoutHandlerChain != null) {
-                term.writeBinary(data);
+                term.writeBinary(isFinal, isContinue, data);
             }
         }
 

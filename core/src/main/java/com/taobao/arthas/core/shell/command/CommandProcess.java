@@ -91,6 +91,7 @@ public interface CommandProcess extends Tty {
     CommandProcess write(String data);
 
     CommandProcess writeBinary(boolean isFinal, boolean isContinue, byte[] data);
+    CommandProcess writeBinary(byte[] data);
 
     /**
      * Set a background handler, this handler is called when the command is running and put to background.

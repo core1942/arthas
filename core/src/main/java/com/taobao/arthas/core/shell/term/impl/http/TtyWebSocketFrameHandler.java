@@ -79,7 +79,7 @@ public class TtyWebSocketFrameHandler extends SimpleChannelInboundHandler<WebSoc
     if (frame instanceof TextWebSocketFrame) {
       conn.writeToDecoder(((TextWebSocketFrame) frame).text());
     } else {
-      conn.readBinary(frame.content());
+      conn.readBinary(frame.isFinalFragment(), frame.content());
     }
   }
 }

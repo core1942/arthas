@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import {MenuAlt2Icon} from "@heroicons/vue/outline";
-import {ElNotification} from "element-plus";
 import {computed, onMounted, ref} from "vue";
 import {ITerminalOptions, Terminal} from "xterm";
 import {FitAddon} from "xterm-addon-fit";
-import {Unicode11Addon} from "xterm-addon-unicode11";
 import {WebglAddon} from "xterm-addon-webgl";
 import "xterm/css/xterm.css"; // 这个css样式必须要引入，不然生成的terminal终端会有问题
 import arthasLogo from "~/assert/arthas.png";
 import fullPic from "~/assert/fullsc.png";
-import Sysprop from "@/views/config/Sysprop.vue";
 
 const {isTunnel = false} = defineProps<{
   isTunnel?: boolean
@@ -26,32 +23,24 @@ const port = ref("");
 const iframe = ref(true);
 const fullSc = ref(true);
 const agentID = ref("");
-
 const outputHerf = computed(() => {
   console.log(agentID.value);
   return isTunnel ? `proxy/${agentID.value}/arthas-output/` : `/arthas-output/`;
 });
-
 // const isTunnel = import.meta.env.MODE === 'tunnel'
-const unicode11Addon = new Unicode11Addon();
 const fitAddon = new FitAddon();
 const webglAddon = new WebglAddon();
 let xterm = new Terminal({allowProposedApi: true});
 
+const decoder = new TextDecoder('utf-8');
+const FAIL_EVENT = new Int8Array([0x58, 0x69, 0x24, 0x79, 0x70, 0x59, 0x57, 0x39, 0x56, 0x78, 0x45, 0x36, 0x37, 0x3f, 0x3e, 0x2a]);
+const CANCEL_EVENT = new Int8Array([0x78, 0x4e, 0x6f, 0x09, 0x0a, 0x5a, 0x4a, 0x6a, 0x5e, 0x6f, 0x78, 0x69, 0x3e, 0x5a, 0x58, 0x6b]);
+const END_EVENT = new Int8Array([0x37, 0x37, 0x20, 0x30, 0x20, 0x31, 0x20, 0x33, 0x31, 0x36, 0x32, 0x00, 0x18, 0x6b, 0x64, 0x62]);
 
-const startReceiveFile = "start.receive.B0100000023be50";
-const endReceiveFile = "end.receive.B0100000023be50";
-const failReceiveFile = "fail.receive.B0100000023be50";
-let downloadFlag = false;
-let downloadPercentageFlag = false;
-let downloadFileName = '';
-let downloadFileCache = [];
+const START_DOWNLOAD_EVENT = new Int8Array([0x7a, 0x72, 0x65, 0x61, 0x64, 0x6c, 0x69, 0x6e, 0x65, 0x2e, 0x63, 0x00, 0x33, 0x31, 0x36, 0x32]);
 
-const startUploadFile = "start.upload.B0100000023be50";
-const endUploadFile = "end.upload.B0100000023be50";
-const failUploadFile = "fail.upload.B0100000023be50";
-let uploadFlag = false;
-let uploadPercentageFlag = false;
+const START_UPLOAD_EVENT = new Int8Array([0x5a, 0x62, 0x69, 0x37, 0x54, 0x4c, 0x1a, 0x6b, 0x4c, 0x2d, 0x3e, 0x00, 0x3f, 0x3a, 0x1b, 0x30]);
+const CONFIRM_EVENT = new Int8Array([0x2a, 0x2a, 0x18, 0x42, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x32, 0x33, 0x62, 0x65]);
 
 onMounted(() => {
   ip.value = getUrlParam("ip") ?? window.location.hostname;
@@ -73,8 +62,7 @@ onMounted(() => {
 // 这个函数在sz命令下载文件的时候用的到，也是源码写好的，可以直接用
 function _save_to_disk(packets, name) {
   // const blob = new Blob(packets);
-  const blob = packets;
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob(packets));
   const el = document.createElement("a");
   el.style.display = "none";
   el.href = url;
@@ -107,102 +95,170 @@ function getWsUri() {
   return uri;
 }
 
-function sz(event: MessageEvent) {
-  try {
-    if (startReceiveFile == event.data) {
-      downloadFlag = true;
-      downloadPercentageFlag = false;
-      downloadFileCache = [];
-      downloadFileName = '';
-      return;
+function isBinaryEquals(a: ArrayBuffer, b: Int8Array) {
+  if (a == null || b == null) {
+    return false;
+  }
+  if (a.byteLength != b.byteLength) {
+    return false;
+  }
+  let aView = new DataView(a);
+  // let bView = new DataView(b);
+  for (let i = 0; i < a.byteLength; i++) {
+    if (aView.getInt8(i) != b.at(i)) {
+      return false;
     }
-    if (endReceiveFile == event.data) {
-      downloadFlag = false;
-      const blob = new Blob(downloadFileCache, {type: ""});
-      _save_to_disk(blob, downloadFileName);
-      downloadFlag = false;
-      downloadPercentageFlag = false;
-      downloadFileCache = [];
-      downloadFileName = '';
-      xterm.write("下载成功！\n")
-      return;
-    }
-    if (failReceiveFile == event.data) {
-      downloadFlag = false;
-      downloadPercentageFlag = false;
-      downloadFileCache = [];
-      downloadFileName = '';
-      xterm.write("下载失败！\n")
-      return;
-    }
-    if (downloadFlag) {
-      if (event.data instanceof Blob) {
-        downloadFileCache.push(event.data)
-        return;
-      }
-      if (downloadPercentageFlag) {
-        xterm.write("\r下载进度：" + event.data);
-      } else {
-        downloadPercentageFlag = true;
-        downloadFileName = event.data;
-        xterm.write("开始下载文件：" + event.data + "\n");
-      }
-    }
-  } catch (e) {
-    downloadFlag = false;
-    downloadPercentageFlag = false;
-    downloadFileCache = [];
-    downloadFileName = '';
-    xterm.write("下载失败！\n")
+  }
+  return true;
+}
+
+class EventContext {
+  data: Blob;
+  inDownloadProgress: boolean;
+  inUploadProgress: boolean;
+  fileCache: Array<Blob>;
+  fileCount: number;
+  fileSize: number;
+  fileName: string;
+
+
+  constructor(data: Blob = null, inDownloadProgress: boolean = false, inUploadProgress: boolean = false, fileCache: Array<Blob> = [], fileCount: number = 0, fileSize: number = 0, fileName: string = null) {
+    this.data = data;
+    this.inDownloadProgress = inDownloadProgress;
+    this.inUploadProgress = inUploadProgress;
+    this.fileCache = fileCache;
+    this.fileCount = fileCount;
+    this.fileSize = fileSize;
+    this.fileName = fileName;
+  }
+
+  startDownload() {
+    this.inDownloadProgress = true;
+  }
+
+  startUpload() {
+    this.inUploadProgress = true;
+  }
+
+
+  setData(value: Blob) {
+    this.data = value;
+    return this;
   }
 }
 
-function rz(event: MessageEvent) {
-  try {
-    if (startUploadFile == event.data) {
-      uploadPercentageFlag = false;
-      uploadFlag = true;
-      let fileElement = document.getElementById("file");
-      fileElement.click();
-      fileElement.onchange = function (arg) {
-        let file = arg.target.files[0];
-        ws.send(file.name + "::" + file.size);
-        let reader = new FileReader();
-        reader.readAsArrayBuffer(file);
-        reader.onload = function (event) {
-          let arrayBuffer = reader.result;
-          let blob = new Blob([arrayBuffer]);
-          ws.send(blob);
-          ws.send(endUploadFile);
-        }
-      };
-      return;
+function isEventSize(blob: Blob) {
+  return blob.size == START_DOWNLOAD_EVENT.byteLength
+      || blob.size == START_UPLOAD_EVENT.byteLength
+      || blob.size == CONFIRM_EVENT.byteLength
+      || blob.size == CANCEL_EVENT.byteLength
+      || blob.size == FAIL_EVENT.byteLength
+      || blob.size == END_EVENT.byteLength;
+}
+
+async function eventHandler(eventContext: EventContext) {
+  let arrayBuffer = await new Response(eventContext.data).arrayBuffer();
+  let nowType = "";
+  if (eventContext.inDownloadProgress) {
+    nowType = "下载";
+  } else if (eventContext.inUploadProgress) {
+    nowType = "上传";
+  }
+  // start download
+  if (isBinaryEquals(arrayBuffer, START_DOWNLOAD_EVENT)) {
+    eventContext.startDownload();
+    // start upload
+  } else if (isBinaryEquals(arrayBuffer, START_UPLOAD_EVENT)) {
+    eventContext.startUpload();
+    // confirm
+  } else if (isBinaryEquals(arrayBuffer, CONFIRM_EVENT)) {
+    xterm.write("\n文件已存在是否覆盖(Y/N)?\n");
+    // cancel
+  } else if (isBinaryEquals(arrayBuffer, CANCEL_EVENT)) {
+    eventContext = new EventContext();
+    xterm.write("\n" + nowType + "已取消\n");
+    // fail
+  } else if (isBinaryEquals(arrayBuffer, FAIL_EVENT)) {
+    eventContext = new EventContext();
+    xterm.write("\n" + nowType + "失败\n");
+    //end
+  } else if (isBinaryEquals(arrayBuffer, END_EVENT)) {
+    _save_to_disk(eventContext.fileCache, eventContext.fileName);
+    eventContext = new EventContext();
+    xterm.write("\n" + nowType + "成功\n");
+  }
+  return eventContext;
+}
+
+async function assembleDownloadFileInfo(eventContext: EventContext) {
+  let arrayBuffer = await new Response(eventContext.data).arrayBuffer();
+  // fileSize::fileName
+  const text = decoder.decode(arrayBuffer);
+  let strings = text.split('::');
+  eventContext.fileSize = parseInt(strings[0]);
+  eventContext.fileName = strings[1];
+  if (Number.isNaN(eventContext.fileSize)) {
+    throw new Error("文件长度不正确");
+  }
+  if (eventContext.fileName == "" || eventContext.fileName == null) {
+    throw new Error("文件名不正确");
+  }
+  return eventContext;
+}
+
+function downloadProgress(eventContext: EventContext) {
+  eventContext.fileCache.push(eventContext.data);
+  eventContext.fileCount += eventContext.data.size;
+  let precent = (eventContext.fileCount * 100) / eventContext.fileSize;
+  xterm.write('\r' + precent.toFixed(2) + '%');
+  return eventContext;
+}
+
+function uploadProgress() {
+  let fileElement = document.getElementById("file");
+  fileElement.click();
+  fileElement.onchange = function (arg) {
+    let file = arg.target.files[0];
+    ws.send(file.name + "::" + file.size);
+    let reader = new FileReader();
+    reader.onload = function (event) {
+      let arrayBuffer = event.target.result;
+      let blob = new Blob([arrayBuffer]);
+      ws.send(blob);
     }
-    if (endUploadFile == event.data) {
-      uploadFlag = false;
-      uploadPercentageFlag = false;
-      xterm.write("上传成功！\n")
-      return;
+    reader.readAsArrayBuffer(file);
+  };
+}
+
+let continuePromise = Promise.resolve(new EventContext());
+
+
+async function downloadResultAsync(eventContext): Promise<EventContext> {
+  if (eventContext == null) {
+    return new EventContext();
+  }
+  if (eventContext.data == null) {
+    return eventContext;
+  }
+  if (isEventSize(eventContext.data)) {
+    return eventHandler(eventContext);
+  }
+  if (eventContext.inDownloadProgress) {
+    if (eventContext.fileName == null) {
+      return assembleDownloadFileInfo(eventContext);
     }
-    if (failUploadFile == event.data) {
-      uploadFlag = false;
-      uploadPercentageFlag = false;
-      xterm.write("上传失败！\n")
-      return;
-    }
-    if (uploadPercentageFlag) {
-      xterm.write("\r上传进度：" + event.data);
-    } else {
-      uploadPercentageFlag = true;
-      downloadFileName = event.data;
-      xterm.write("开始上传文件：" + event.data + "\n");
-    }
-  } catch (e) {
-    uploadFlag = false;
-    uploadPercentageFlag = false;
-    xterm.write("上传失败！\n")
+    return downloadProgress(eventContext);
+  }
+  if (eventContext.inUploadProgress) {
+    uploadProgress();
+    return new EventContext();
   }
 }
+
+function lszrzModePromise(data: Blob) {
+  continuePromise = continuePromise.then(eventContext => downloadResultAsync(eventContext.setData(data)), err => new EventContext());
+}
+
 
 // * ============================== ↓ init websocket ↓ ============================== * //
 function initWs(silent: boolean) {
@@ -225,22 +281,23 @@ function initWs(silent: boolean) {
 
     ws!.onmessage = function (event: MessageEvent) {
       if (event.type === "message") {
-        if (downloadFlag || startReceiveFile == event.data) {
-          sz(event);
-        }else if (uploadFlag || startUploadFile == event.data) {
-          rz(event);
-        }else {
+        if (event.data instanceof Blob) {
+          lszrzModePromise(event.data);
+        } else {
           xterm.write(event.data);
         }
       }
     };
+
     ws?.send(JSON.stringify({action: "resize", cols, rows}));
+
     intervalReadKey = window.setInterval(function () {
       if (ws != null && ws.readyState === 1) {
         ws.send(JSON.stringify({action: "read", data: ""}));
       }
     }, 30000);
   };
+
   ws.onclose = function (message) {
     if (intervalReadKey != -1) {
       window.clearInterval(intervalReadKey);
@@ -268,7 +325,6 @@ function initXterm(scrollback: string) {
     // scrollback: 10000
   } as ITerminalOptions);
   xterm.loadAddon(fitAddon);
-  xterm.loadAddon(unicode11Addon);
   xterm.unicode.activeVersion = "11";
   xterm.onResize((size) => {
     console.log(size.rows, size.cols);
