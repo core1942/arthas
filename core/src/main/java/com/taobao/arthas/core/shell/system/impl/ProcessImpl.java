@@ -25,6 +25,7 @@ import com.taobao.arthas.core.shell.term.Tty;
 import com.taobao.middleware.cli.CLIException;
 import com.taobao.middleware.cli.CommandLine;
 import io.netty.buffer.ByteBuf;
+import io.termd.core.function.BiConsumer;
 import io.termd.core.function.Function;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -472,9 +473,9 @@ public class ProcessImpl implements Process {
         }
 
         @Override
-        public CommandProcess binaryHandler(Handler<ByteBuf> handler) {
+        public CommandProcess binaryConsumer(BiConsumer<Boolean, ByteBuf> consumer) {
             if (processForeground && handler != null) {
-                tty.binaryConsumer(handler);
+                tty.binaryConsumer(consumer);
             }
             return this;
         }

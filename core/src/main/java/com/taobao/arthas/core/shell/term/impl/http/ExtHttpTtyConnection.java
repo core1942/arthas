@@ -113,10 +113,6 @@ public class ExtHttpTtyConnection extends HttpTtyConnection {
         return Collections.emptyMap();
     }
 
-    public BiConsumer<Boolean, ByteBuf> getConsumer() {
-        return consumer;
-    }
-
     public void setConsumer(BiConsumer<Boolean, ByteBuf> consumer) {
         this.consumer = consumer;
     }

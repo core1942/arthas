@@ -27,6 +27,7 @@ import com.taobao.arthas.core.shell.system.JobListener;
 import com.taobao.arthas.core.shell.system.impl.InternalCommandManager;
 import com.taobao.arthas.core.shell.term.SignalHandler;
 import com.taobao.arthas.core.shell.term.Term;
+import com.taobao.arthas.core.shell.term.Tty;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSession;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
 import com.taobao.arthas.core.util.ArthasBanner;
@@ -37,6 +38,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import io.termd.core.function.BiConsumer;
 import io.termd.core.function.Function;
 
 import java.util.List;
@@ -608,6 +610,16 @@ public class HttpApiHandler {
         @Override
         public Term stdinHandler(Handler<String> handler) {
             return this;
+        }
+
+        @Override
+        public Tty binaryConsumer(BiConsumer<Boolean, ByteBuf> consumer) {
+            return Term.super.binaryConsumer(consumer);
+        }
+
+        @Override
+        public Tty writeBinary(boolean isFinal, boolean isContinue, byte[] data) {
+            return null;
         }
 
         @Override
