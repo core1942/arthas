@@ -31,11 +31,25 @@ public class RzCommand extends AnnotatedCommand {
     private static final byte[] FAIL_EVENT = { 0x58, 0x69, 0x24, 0x79, 0x70, 0x59, 0x57, 0x39, 0x56, 0x78, 0x45, 0x36, 0x37, 0x3f, 0x3e, 0x2a};
     private static final byte[] CANCEL_EVENT = { 0x78, 0x4e, 0x6f, 0x09, 0x0a, 0x5a, 0x4a, 0x6a, 0x5e, 0x6f, 0x78, 0x69, 0x3e, 0x5a, 0x58, 0x6b};
     private static final String SPLIT = "::";
+
+    private SeekableByteChannel channel;
+
     @Override
     public void process(CommandProcess process) {
         String currentPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR);
         process.interruptHandler(event -> interrupt = true);
-        process.endHandler(event -> close = true);
+        process.endHandler(event -> {
+            close = true;
+            process.stdinHandler(e->{});
+            process.binaryConsumer(null);
+            if (channel != null) {
+                try {
+                    channel.close();
+                } catch (Exception e) {
+
+                }
+            }
+        });
         UploadData uploadData = new UploadData();
         process.stdinHandler(event -> {
             process.stdinHandler(e->{});
@@ -48,7 +62,7 @@ public class RzCommand extends AnnotatedCommand {
                     String fileName = split[0];
                     String targetFilePath = currentPath + "/" + fileName;
                     File file = Paths.get(targetFilePath).toFile();
-                    uploadData.setCount(new BigDecimal(Long.parseLong(split[1])));
+                    uploadData.setTotal(new BigDecimal(Long.parseLong(split[1])));
                     uploadData.setFile(file);
                     if (file.exists()) {
                         process.writeBinary(CONFIRM_EVENT);
@@ -74,7 +88,6 @@ public class RzCommand extends AnnotatedCommand {
     }
 
     private void downloadFile(CommandProcess process, UploadData uploadData) {
-        SeekableByteChannel channel;
         try {
             channel = Files.newByteChannel(uploadData.file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             process.binaryConsumer((isFinal, byteBuf) -> {
@@ -88,7 +101,8 @@ public class RzCommand extends AnnotatedCommand {
                         process.end(0,"\n");
                     } else {
                         channel.write(byteBuf.nioBuffer());
-                        BigDecimal percentage = new BigDecimal(byteBuf.readableBytes()).divide(uploadData.count, 4, RoundingMode.HALF_UP).movePointRight(2);
+                        uploadData.addCount(byteBuf.readableBytes());
+                        BigDecimal percentage = uploadData.count.divide(uploadData.total, 4, RoundingMode.HALF_UP).movePointRight(2);
                         process.write("\r" + percentage + "%");
                         if (isFinal) {
                             process.binaryConsumer(null);
@@ -125,8 +139,21 @@ public class RzCommand extends AnnotatedCommand {
 
 
     static class UploadData{
-       private BigDecimal count;
+        private BigDecimal total;
+        private BigDecimal count;
         private File file;
+
+        public UploadData() {
+            this.count = BigDecimal.ZERO;
+        }
+
+        public BigDecimal getTotal() {
+            return total;
+        }
+
+        public void setTotal(BigDecimal total) {
+            this.total = total;
+        }
 
         public BigDecimal getCount() {
             return count;
@@ -142,6 +169,10 @@ public class RzCommand extends AnnotatedCommand {
 
         public void setFile(File file) {
             this.file = file;
+        }
+
+        public void addCount(int i) {
+            this.count = this.count.add(new BigDecimal(i));
         }
     }
 

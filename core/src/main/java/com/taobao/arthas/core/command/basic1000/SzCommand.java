@@ -65,15 +65,16 @@ public class SzCommand extends AnnotatedCommand {
                     process.writeBinary(send);
                     byteBuffer.clear();
                 }
-                process.writeBinary(END_EVENT);
+                if (interrupt) {
+                    process.writeBinary(CANCEL_EVENT);
+                } else {
+                    process.writeBinary(END_EVENT);
+                }
             } catch (Exception ignored) {
                 process.writeBinary(FAIL_EVENT);
             }
         } else {
             process.writeBinary(FAIL_EVENT);
-        }
-        if (interrupt) {
-            process.writeBinary(CANCEL_EVENT);
         }
         process.end();
     }

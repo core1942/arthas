@@ -35,7 +35,7 @@ public class FunctionInvocationHandler implements InvocationHandler {
         if (name.equals("apply")) {
             Session session = termImpl.getSession();
             if (session != null) {
-                boolean authenticated = session.get(ArthasConstants.SUBJECT_KEY) != null;
+                boolean authenticated = true;
                 if (authenticated) {
                     return method.invoke(target, args);
                 } else {

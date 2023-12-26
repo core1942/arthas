@@ -110,7 +110,6 @@ function isBinaryEquals(a: ArrayBuffer, b: Int8Array) {
     }
     return true;
 }
-
 class EventContext {
     data: Blob;
     inDownloadProgress: boolean;
@@ -265,7 +264,7 @@ function uploadProgress() {
 let continuePromise = Promise.resolve(new EventContext());
 
 
-async function downloadResultAsync(eventContext): Promise<EventContext> {
+async function blobHandle(eventContext): Promise<EventContext> {
     if (eventContext == null) {
         return new EventContext();
     }
@@ -283,10 +282,16 @@ async function downloadResultAsync(eventContext): Promise<EventContext> {
     }
 }
 
-function lszrzModePromise(data: Blob) {
-    continuePromise = continuePromise.then(eventContext => downloadResultAsync(eventContext.setData(data)), err => new EventContext());
+function onWsMsgHandle(data: string | Blob) {
+    continuePromise = continuePromise.then(eventContext => {
+        if (data instanceof Blob) {
+            return blobHandle(eventContext.setData(data));
+        } else {
+            xterm.write(data);
+            return eventContext;
+        }
+    }).catch(reason => new EventContext());
 }
-
 
 // * ============================== ↓ init websocket ↓ ============================== * //
 function initWs(silent: boolean) {
@@ -304,16 +309,13 @@ function initWs(silent: boolean) {
 
         const {cols, rows} = initXterm(scrollback);
         xterm.onData(function (data) {
+            console.log(data);
             ws?.send(JSON.stringify({action: "read", data: data}));
         });
 
         ws!.onmessage = function (event: MessageEvent) {
             if (event.type === "message") {
-                if (event.data instanceof Blob) {
-                    lszrzModePromise(event.data);
-                } else {
-                    xterm.write(event.data);
-                }
+                onWsMsgHandle(event.data);
             }
         };
 
