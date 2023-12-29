@@ -6,8 +6,10 @@ import com.taobao.arthas.core.command.Constants;
 import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.CommandProcess;
 import com.taobao.middleware.cli.annotations.*;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @see com.taobao.arthas.core.shell.command.internal.GrepHandler
@@ -70,7 +72,7 @@ public class GrepCommand extends AnnotatedCommand {
     @Argument(argName = "files", index = 1, required = false)
     @Description("files")
     public void setFiles(List<String> files) {
-        this.files = files;
+        this.files = files.stream().map(StringEscapeUtils::unescapeJava).collect(Collectors.toList());
     }
 
     @Option(longName = "encoding")

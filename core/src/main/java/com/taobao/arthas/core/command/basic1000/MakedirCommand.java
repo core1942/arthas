@@ -1,8 +1,5 @@
 package com.taobao.arthas.core.command.basic1000;
 
-import com.alibaba.arthas.deps.org.slf4j.Logger;
-import com.alibaba.arthas.deps.org.slf4j.LoggerFactory;
-import com.taobao.arthas.common.FileUtils;
 import com.taobao.arthas.core.server.ArthasBootstrap;
 import com.taobao.arthas.core.shell.cli.Completion;
 import com.taobao.arthas.core.shell.cli.CompletionUtils;
@@ -17,41 +14,36 @@ import org.apache.commons.text.StringEscapeUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
-@Name("rm")
-@Summary("delete file")
-public class RmCommand extends AnnotatedCommand {
+@Name("makedir")
+@Summary("create directory")
+public class MakedirCommand extends AnnotatedCommand {
 
-    private String file;
+    private String directory;
 
-    @Argument(argName = "file", index = 0)
-    @Description("file")
-    public void setFile(String file) {
-        this.file = StringEscapeUtils.unescapeJava(file);
+    @Argument(argName = "directory", index = 0)
+    @Description("directory")
+    public void setFile(String directory) {
+        this.directory = StringEscapeUtils.unescapeJava(directory);
     }
 
     @Override
     public void process(CommandProcess process) {
-        String currentPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR);
-        File f = new File(currentPath + "/" + file);
-        if (deleteQuietly(f)) {
+        String currentPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR+ "/" + directory);
+        try {
+            Files.createDirectories(Paths.get(currentPath));
             process.end(0, "删除成功\n");
-        } else {
-            process.end(1, "删除失败\n");
+        } catch (IOException e) {
+            process.end(1, "删除失败: " + e.getMessage() + "\n");
         }
     }
 
+
     public static void main(String[] args) throws IOException {
-        File f = new File("C:\\Users\\Art\\Desktop\\arthas-packaging-3.7.1-bin\\test");
-        boolean b = deleteQuietly(f);
-        System.out.println(b);
+        Files.createDirectories(Paths.get("C:\\Users\\Art\\Desktop\\arthas-packaging-3.7.1-bin\\test\\test"));
     }
 
 

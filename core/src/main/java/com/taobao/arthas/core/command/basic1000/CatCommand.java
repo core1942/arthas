@@ -10,6 +10,7 @@ import com.taobao.arthas.core.shell.command.AnnotatedCommand;
 import com.taobao.arthas.core.shell.command.CommandProcess;
 import com.taobao.arthas.core.shell.handlers.Handler;
 import com.taobao.middleware.cli.annotations.*;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.*;
 import java.nio.CharBuffer;
@@ -18,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Name("cat")
 @Summary("Concatenate and print files")
@@ -38,7 +40,7 @@ public class CatCommand extends AnnotatedCommand {
     @Argument(argName = "files", index = 0)
     @Description("files")
     public void setFiles(List<String> files) {
-        this.files = files;
+        this.files = files.stream().map(StringEscapeUtils::unescapeJava).collect(Collectors.toList());
     }
 
     @Option(longName = "encoding")

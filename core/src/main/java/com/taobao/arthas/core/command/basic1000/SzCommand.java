@@ -12,16 +12,15 @@ import com.taobao.middleware.cli.annotations.Argument;
 import com.taobao.middleware.cli.annotations.Description;
 import com.taobao.middleware.cli.annotations.Name;
 import com.taobao.middleware.cli.annotations.Summary;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
 
 @Name("sz")
 @Summary("download file")
@@ -41,8 +40,9 @@ public class SzCommand extends AnnotatedCommand {
     @Argument(argName = "file", index = 0)
     @Description("file")
     public void setFile(String file) {
-        this.file = file;
+        this.file = StringEscapeUtils.unescapeJava(file);
     }
+
 
     @Override
     public void process(CommandProcess process) {

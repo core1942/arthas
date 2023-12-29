@@ -10,6 +10,7 @@ import com.taobao.middleware.cli.annotations.Argument;
 import com.taobao.middleware.cli.annotations.Description;
 import com.taobao.middleware.cli.annotations.Name;
 import com.taobao.middleware.cli.annotations.Summary;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class CdCommand extends AnnotatedCommand {
     @Argument(argName = "path", index = 0)
     @Description("path")
     public void setPath(String path) {
-        this.path = path;
+        this.path = StringEscapeUtils.unescapeJava(path);
     }
 
     public String getPath() {

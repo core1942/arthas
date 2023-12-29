@@ -26,7 +26,6 @@ public class ExecCommand extends AnnotatedCommand {
 
     private volatile boolean close = false;
     private static final byte CTRL_C = 0x03;
-    private static final String LEFT_KEY = new String(new byte[]{27, 91, 68});
 
 
     @Argument(argName = "command", index = 0)

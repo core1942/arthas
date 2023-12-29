@@ -1,5 +1,6 @@
 package com.taobao.arthas.core.shell.term.impl.http;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taobao.arthas.common.ArthasConstants;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSession;
 import com.taobao.arthas.core.shell.term.impl.http.session.HttpSessionManager;
@@ -17,7 +18,9 @@ import io.termd.core.http.HttpTtyConnection;
 import io.termd.core.telnet.ExtBinaryEncoder;
 import io.termd.core.tty.ExtTtyOutputMode;
 import io.termd.core.util.Helper;
+import io.termd.core.util.Vector;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;

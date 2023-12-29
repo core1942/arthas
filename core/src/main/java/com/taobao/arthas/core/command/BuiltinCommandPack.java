@@ -87,6 +87,7 @@ public class BuiltinCommandPack implements CommandResolver {
         commandClassList.add(SzCommand.class);
         commandClassList.add(RzCommand.class);
         commandClassList.add(RmCommand.class);
+        commandClassList.add(MakedirCommand.class);
         // commandClassList.add(VmToolCommand.class);
         commandClassList.add(StopCommand.class);
         try {
