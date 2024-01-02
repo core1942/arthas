@@ -14,11 +14,10 @@ import java.io.File;
 @Name("sql")
 @Summary("mysql connect")
 public class SqlCommand extends AnnotatedCommand {
-    private static final Logger logger = LoggerFactory.getLogger(SqlCommand.class);
     private String encoding;
     private Integer port = 3307;
 
-    @Argument(argName = "port", index = 0)
+    @Argument(argName = "port", index = 0, required = false)
     @Description("port default：3307")
     public void setPath(Integer port) {
         this.port = port;
