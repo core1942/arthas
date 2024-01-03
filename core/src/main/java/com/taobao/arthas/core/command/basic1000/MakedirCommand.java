@@ -18,7 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@Name("makedir")
+@Name("mkdir")
 @Summary("create directory")
 public class MakedirCommand extends AnnotatedCommand {
 
@@ -32,7 +32,7 @@ public class MakedirCommand extends AnnotatedCommand {
 
     @Override
     public void process(CommandProcess process) {
-        String currentPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR+ "/" + directory);
+        String currentPath = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR)+ "/" + directory;
         try {
             Files.createDirectories(Paths.get(currentPath));
             process.end(0, "删除成功\n");

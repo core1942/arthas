@@ -91,7 +91,7 @@ public class CatCommand extends AnnotatedCommand {
         });
 
         for (String file : files) {
-            file = System.getProperty("user.dir") + "/" + file;
+            file = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR) + "/" + file;
             if (!interrupt && !close) {
                 BufferedReader reader =null;
                 try {
