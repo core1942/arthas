@@ -1,15 +1,13 @@
 package com.alibaba.arthas.tunnel.server.cluster;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.alibaba.arthas.tunnel.server.AppInfo;
 import com.alibaba.arthas.tunnel.server.app.Apps;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -39,13 +37,15 @@ public class InMemoryClusterStore implements TunnelClusterStore {
     @Override
     public void removeAgent(String agentId) {
         String sellerName = findSellerName(agentId);
-        Map<String, AgentClusterInfo> stringAgentClusterInfoMap = CACHE.get(sellerName);
-        if (stringAgentClusterInfoMap != null) {
-            stringAgentClusterInfoMap.remove(agentId);
-            if (stringAgentClusterInfoMap.isEmpty()) {
-                CACHE.computeIfAbsent(sellerName, CACHE::remove);
+        CACHE.compute(sellerName, (s, stringAgentClusterInfoMap) -> {
+            if (stringAgentClusterInfoMap != null) {
+                stringAgentClusterInfoMap.remove(agentId);
+                if (!stringAgentClusterInfoMap.isEmpty()) {
+                    return stringAgentClusterInfoMap;
+                }
             }
-        }
+            return null;
+        });
     }
 
     @Override
