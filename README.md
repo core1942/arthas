@@ -44,9 +44,9 @@ Arthas was built to solve these issues. A developer can troubleshoot your produc
 * Supports Linux/Mac/Windows.
 
 
-### [Online Tutorials(Recommended)](https://arthas.aliyun.com/doc/arthas-tutorials.html?language=en)
+### Online Tutorials(Recommended)
 
-* [Usages](tutorials/katacoda/README.md#online-tutorial-usages)
+* [View](https://arthas.aliyun.com/doc/arthas-tutorials.html?language=en)
 
 ### Quick start
 
@@ -434,6 +434,8 @@ Welcome to register the company name in this issue: https://github.com/alibaba/a
 ![有赞](static/youzan.png)
 ![科大讯飞](static/iflytek.png)
 ![智联招聘](static/zhaopin.png)
+![达美盛](static/dms.png)
+
 
 ### Derivative Projects
 
