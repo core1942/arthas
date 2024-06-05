@@ -12,11 +12,12 @@ function tunnelWebConsoleLink(agentId: string, sellerId: number, storeId: number
     return `/?targetServer=${targetServer}&port=${tunnelPort}&agentId=${agentId}&sellerId=${sellerId}&storeId=${storeId}`;
 }
 
-function btnType(type: number) {
-    if (type === 0) {
-        return 'btn-outline btn-primary'
-    } else if (type === -1) {
+function btnType(agentInfo: AgentInfo) {
+    if (agentInfo.expire) {
         return 'btn-disabled'
+    }
+    if (agentInfo.type === 0) {
+        return 'btn-outline btn-primary'
     }
     return 'btn-accent'
 }
@@ -75,7 +76,7 @@ onMounted(() => {
         <tr v-for="agentInfo in agentInfos" :key="agentInfo" class="hover">
             <td>
                 <a class="btn"
-                   :class="btnType(agentInfo.type)"
+                   :class="btnType(agentInfo)"
                    :href="tunnelWebConsoleLink(agentInfo.agentId,agentInfo.sellerId,agentInfo.storeId,agentInfo.clientConnectTunnelPort, agentInfo.clientConnectHost)">{{
                         agentInfo.name
                     }}</a>

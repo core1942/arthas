@@ -126,7 +126,6 @@ public class InMemoryClusterStore implements TunnelClusterStore {
         List<AgentInfo> ok = infoMap.values().stream().map(InMemoryClusterStore::mapAgentInfo).sorted(Comparator.comparing(AgentInfo::getType)).collect(Collectors.toList());
         List<AgentInfo> expireList = expire.values().stream().map(InMemoryClusterStore::mapAgentInfo)
                 .peek(agentInfo -> agentInfo.setExpire(true))
-                .peek(agentInfo -> agentInfo.setType(-1))
                 .sorted(Comparator.comparing(AgentInfo::getType))
                 .collect(Collectors.toList());
         ok.addAll(expireList);
