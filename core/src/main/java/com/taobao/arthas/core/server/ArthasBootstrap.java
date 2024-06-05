@@ -364,6 +364,14 @@ public class ArthasBootstrap {
                 tunnelClient.setId(configure.getAgentId());
                 tunnelClient.setTunnelServerUrl(configure.getTunnelServer());
                 tunnelClient.setVersion(ArthasBanner.version());
+                tunnelClient.setSellerId(configure.getSellerId());
+                tunnelClient.setSellerName(configure.getSellerName());
+                tunnelClient.setStoreId(configure.getStoreId());
+                tunnelClient.setStoreName(configure.getStoreName());
+                tunnelClient.setAppType(configure.getAppType());
+                tunnelClient.setAppVersion(configure.getAppVersion());
+                tunnelClient.setLocalIp(configure.getLocalIp());
+                tunnelClient.setMacAddr(configure.getMacAddr());
                 ChannelFuture channelFuture = tunnelClient.start();
                 channelFuture.await(10, TimeUnit.SECONDS);
             }

@@ -6,7 +6,6 @@ import {WebglAddon} from "xterm-addon-webgl"
 import {MenuAlt2Icon} from "@heroicons/vue/outline"
 import fullPic from "~/assert/fullsc.png"
 import arthasLogo from "~/assert/arthas.png"
-import {clearStates} from "echarts/types/src/util/states";
 
 const {isTunnel = false} = defineProps<{
     isTunnel?: boolean
@@ -84,8 +83,8 @@ function getUrlParam(name: string) {
 
 function getWsUri() {
     // const host = `tunnel-monitor.qmai.cn:7777/ws?method=connectArthas&id=BETA:北木南体验店-北木南支付测试门店:11279-1041498:(20231229151915)_XNKAXLVZ8YJWZ1C9UWD3&targetServer=172.24.137.33`;
-    // const host = `${ip.value}:${port.value}`;
-    const host = `tunnel-monitor.qmai.cn:${port.value}`;
+    const host = `${ip.value}:${port.value}`;
+    // const host = `tunnel-monitor.qmai.cn:${port.value}`;
     if (!isTunnel) return `ws://${host}/ws`;
     const path = getUrlParam("path") ?? "ws";
     const _targetServer = getUrlParam("targetServer");

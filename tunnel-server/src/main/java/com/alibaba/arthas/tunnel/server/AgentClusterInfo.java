@@ -1,5 +1,7 @@
 package com.alibaba.arthas.tunnel.server;
 
+import java.time.LocalDateTime;
+
 /**
  * @author hengyunabc 2020-10-30
  *
@@ -8,6 +10,7 @@ public class AgentClusterInfo {
     /**
      * agent本身以哪个ip连接到 tunnel server
      */
+    private String agentId;
     private String host;
     private int port;
     private String arthasVersion;
@@ -18,21 +21,16 @@ public class AgentClusterInfo {
     private String clientConnectHost;
     private int clientConnectTunnelPort;
 
-    private String applicationVersion;
+    private AppInfo appInfo;
 
-    private String shopName;
-    private String shopId;
-
-    public AgentClusterInfo() {
-
-    }
-
-    public AgentClusterInfo(AgentInfo agentInfo, String clientConnectHost, int clientConnectTunnelPort) {
+    public AgentClusterInfo(String agentId, AgentInfo agentInfo, String clientConnectHost, int clientConnectTunnelPort) {
+        this.agentId = agentId;
         this.host = agentInfo.getHost();
         this.port = agentInfo.getPort();
         this.arthasVersion = agentInfo.getArthasVersion();
         this.clientConnectHost = clientConnectHost;
         this.clientConnectTunnelPort = clientConnectTunnelPort;
+        this.appInfo = agentInfo.getAppInfo();
     }
 
     public String getHost() {
@@ -75,27 +73,19 @@ public class AgentClusterInfo {
         this.clientConnectTunnelPort = clientConnectTunnelPort;
     }
 
-    public String getApplicationVersion() {
-        return applicationVersion;
+    public String getAgentId() {
+        return agentId;
     }
 
-    public void setApplicationVersion(String applicationVersion) {
-        this.applicationVersion = applicationVersion;
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 
-    public String getShopName() {
-        return shopName;
+    public AppInfo getAppInfo() {
+        return appInfo;
     }
 
-    public void setShopName(String shopName) {
-        this.shopName = shopName;
-    }
-
-    public String getShopId() {
-        return shopId;
-    }
-
-    public void setShopId(String shopId) {
-        this.shopId = shopId;
+    public void setAppInfo(AppInfo appInfo) {
+        this.appInfo = appInfo;
     }
 }

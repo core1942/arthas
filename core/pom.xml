@@ -277,7 +277,7 @@
         <dependency>
             <groupId>org.jetbrains.pty4j</groupId>
             <artifactId>pty4j</artifactId>
-            <version>12.12.12-SNAPSHOT</version>
+            <version>13.13.13</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

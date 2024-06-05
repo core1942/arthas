@@ -10,6 +10,9 @@ import com.taobao.middleware.cli.annotations.Name;
 import com.taobao.middleware.cli.annotations.Summary;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Name("ls")
 @Summary("ls command")
@@ -19,8 +22,11 @@ public class LsCommand extends AnnotatedCommand {
     public void process(CommandProcess process) {
         String path = System.getProperty(ArthasBootstrap.ARTHAS_USER_DIR);
         File dir = new File(path);
-        String[] list = dir.list();
-        process.appendResult(new LsModel(list));
+        File[] files = dir.listFiles();
+        if (files != null) {
+            List<LsModel.FileNode> fileNodes = Arrays.stream(files).map(file -> new LsModel.FileNode(file.isDirectory(), file.getName())).collect(Collectors.toList());
+            process.appendResult(new LsModel(fileNodes));
+        }
         process.end();
     }
 

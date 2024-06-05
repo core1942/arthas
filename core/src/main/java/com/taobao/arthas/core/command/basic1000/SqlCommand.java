@@ -41,6 +41,9 @@ public class SqlCommand extends AnnotatedCommand {
             String mysqlCommand;
             String arthasHome = System.getProperty("user.dir");
             File file = new File(arthasHome + "/../mysql/bin/mysql.exe");
+            if (!file.exists()) {
+                file = new File(arthasHome + "/../../mysql/bin/mysql.exe");
+            }
             String canonicalPath = file.getCanonicalPath();
             if (file.exists()) {
                 mysqlCommand = canonicalPath;

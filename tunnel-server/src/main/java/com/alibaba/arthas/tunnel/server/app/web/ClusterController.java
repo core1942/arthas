@@ -31,7 +31,7 @@ public class ClusterController {
 
         String host = null;
         if (tunnelClusterStore != null) {
-            AgentClusterInfo info = tunnelClusterStore.findAgent(agentId);
+            AgentClusterInfo info = tunnelClusterStore.findAgent(0, 0, agentId);
             host = info.getClientConnectHost();
         }
 

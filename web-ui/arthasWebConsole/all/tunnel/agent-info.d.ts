@@ -1,0 +1,20 @@
+type AgentInfo = {
+  clientConnectHost:string,
+  clientConnectTunnelPort:number,
+  host:string,
+  port:number,
+  sellerId:number,
+  storeId:number,
+  agentId:string,
+  name:string,
+  mac:string,
+  ip:string,
+  macAddr:string,
+  version:string,
+  type:number,
+  connectTimeAgo:string,
+  connectTime: string,
+  expire:boolean,
+  expireTimeAgo:string,
+  expireTime:string
+}

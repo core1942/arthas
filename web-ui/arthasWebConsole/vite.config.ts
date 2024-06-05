@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
     input = {
       tunnel: path.resolve(__dirname, "all/tunnel/index.html"),
       apps: path.resolve(__dirname, "all/tunnel/apps.html"),
+      stores: path.resolve(__dirname, "all/tunnel/stores.html"),
       agents: path.resolve(__dirname, "all/tunnel/agents.html"),
     };
     proxy = {

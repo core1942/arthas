@@ -79,7 +79,7 @@
     </modules>
 
     <properties>
-        <revision>100.100.106</revision>
+        <revision>100.100.107</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -98,6 +98,17 @@
             <id>nexus-public</id>
             <name>nexus-public</name>
             <url>https://hub.zmcms.cn/repository/maven-public/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>nexus-jetbrains</id>
+            <name>nexus-jetbrains</name>
+            <url>https://packages.jetbrains.team/maven/p/ij/intellij-dependencies</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>

@@ -74,6 +74,15 @@ public class Configure {
      */
     private Boolean localConnectionNonAuth;
 
+    private String sellerId;
+    private String sellerName;
+    private String storeId;
+    private String storeName;
+    private String appVersion;
+    private String appType;
+    private String localIp;
+    private String macAddr;
+
     public String getIp() {
         return ip;
     }
@@ -208,6 +217,70 @@ public class Configure {
 
     public void setLocalConnectionNonAuth(boolean localConnectionNonAuth) {
         this.localConnectionNonAuth = localConnectionNonAuth;
+    }
+
+    public String getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public void setSellerName(String sellerName) {
+        this.sellerName = sellerName;
+    }
+
+    public String getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(String storeId) {
+        this.storeId = storeId;
+    }
+
+    public String getStoreName() {
+        return storeName;
+    }
+
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
+
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public void setLocalIp(String localIp) {
+        this.localIp = localIp;
+    }
+
+    public String getAppType() {
+        return appType;
+    }
+
+    public void setAppType(String appType) {
+        this.appType = appType;
+    }
+
+    public String getMacAddr() {
+        return macAddr;
+    }
+
+    public void setMacAddr(String macAddr) {
+        this.macAddr = macAddr;
     }
 
     /**

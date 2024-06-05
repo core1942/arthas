@@ -5,7 +5,7 @@ package com.alibaba.arthas.tunnel.server.app;
  *
  * @author WangGang
  */
-public class Apps {
+public class SellerInfo {
     private String sellerName;
     private String sellerId;
     private Integer storeNum;

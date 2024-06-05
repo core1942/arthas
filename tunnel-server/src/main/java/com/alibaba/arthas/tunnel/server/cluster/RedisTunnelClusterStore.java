@@ -3,7 +3,9 @@ package com.alibaba.arthas.tunnel.server.cluster;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import com.alibaba.arthas.tunnel.server.app.Apps;
+import com.alibaba.arthas.tunnel.server.app.AgentInfo;
+import com.alibaba.arthas.tunnel.server.app.SellerInfo;
+import com.alibaba.arthas.tunnel.server.app.StoreInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -27,7 +29,7 @@ public class RedisTunnelClusterStore implements TunnelClusterStore {
     private StringRedisTemplate redisTemplate;
 
     @Override
-    public AgentClusterInfo findAgent(String agentId) {
+    public AgentClusterInfo findAgent(Integer sellerId, Integer storeId, String agentId) {
         try {
             ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
             String infoStr = opsForValue.get(prefix + agentId);
@@ -43,7 +45,7 @@ public class RedisTunnelClusterStore implements TunnelClusterStore {
     }
 
     @Override
-    public void removeAgent(String agentId) {
+    public void removeAgent(Integer sellerId, Integer storeId, String agentId) {
         ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
         opsForValue.getOperations().delete(prefix + agentId);
     }
@@ -69,7 +71,7 @@ public class RedisTunnelClusterStore implements TunnelClusterStore {
     }
 
     @Override
-    public List<Apps> allAgentIds() {
+    public List<SellerInfo> sellerInfo() {
         // ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
         //
         // int length = prefix.length();
@@ -88,7 +90,17 @@ public class RedisTunnelClusterStore implements TunnelClusterStore {
     }
 
     @Override
-    public Map<String, AgentClusterInfo> agentInfo(String appName) {
+    public List<StoreInfo> storeInfo(Integer sellerId) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<AgentInfo> agentInfo(Integer sellerId, Integer storeId) {
+        return Collections.emptyList();
+    }
+
+
+    public Map<String, AgentClusterInfo> agentInfo(Integer appName) {
         try {
 
             ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();

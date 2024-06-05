@@ -1,5 +1,5 @@
-type AppInfo = {
+type SellerInfo = {
   sellerName:string,
-  sellerId:string,
+  sellerId:number,
   storeNum:number
 }

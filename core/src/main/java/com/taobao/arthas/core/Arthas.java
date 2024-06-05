@@ -45,6 +45,14 @@ public class Arthas {
         Option tunnelServer = new TypedOption<String>().setType(String.class).setShortName("tunnel-server");
         Option agentId = new TypedOption<String>().setType(String.class).setShortName("agent-id");
         Option appName = new TypedOption<String>().setType(String.class).setShortName(ArthasConstants.APP_NAME);
+        Option sellerId = new TypedOption<String>().setType(String.class).setShortName("seller-id");
+        Option sellerName = new TypedOption<String>().setType(String.class).setShortName("seller-name");
+        Option storeId = new TypedOption<String>().setType(String.class).setShortName("store-id");
+        Option storeName = new TypedOption<String>().setType(String.class).setShortName("store-name");
+        Option appType = new TypedOption<String>().setType(String.class).setShortName("app-type");
+        Option appVersion = new TypedOption<String>().setType(String.class).setShortName("app-version");
+        Option localIp = new TypedOption<String>().setType(String.class).setShortName("local-ip");
+        Option macAddr = new TypedOption<String>().setType(String.class).setShortName("mac-addr");
 
         Option statUrl = new TypedOption<String>().setType(String.class).setShortName("stat-url");
         Option disabledCommands = new TypedOption<String>().setType(String.class).setShortName("disabled-commands");
@@ -52,6 +60,7 @@ public class Arthas {
         CLI cli = CLIs.create("arthas").addOption(pid).addOption(core).addOption(agent).addOption(target)
                 .addOption(telnetPort).addOption(httpPort).addOption(sessionTimeout)
                 .addOption(username).addOption(password)
+                .addOption(sellerId).addOption(sellerName).addOption(storeId).addOption(storeName).addOption(appType).addOption(appVersion).addOption(localIp).addOption(macAddr)
                 .addOption(tunnelServer).addOption(agentId).addOption(appName).addOption(statUrl).addOption(disabledCommands);
         CommandLine commandLine = cli.parse(Arrays.asList(args));
 
@@ -82,6 +91,14 @@ public class Arthas {
         configure.setStatUrl((String) commandLine.getOptionValue("stat-url"));
         configure.setDisabledCommands((String) commandLine.getOptionValue("disabled-commands"));
         configure.setAppName((String) commandLine.getOptionValue(ArthasConstants.APP_NAME));
+        configure.setSellerId((String) commandLine.getOptionValue("seller-id"));
+        configure.setSellerName((String) commandLine.getOptionValue("seller-name"));
+        configure.setStoreId((String) commandLine.getOptionValue("store-id"));
+        configure.setStoreName((String) commandLine.getOptionValue("store-name"));
+        configure.setAppType((String) commandLine.getOptionValue("app-type"));
+        configure.setAppVersion((String) commandLine.getOptionValue("app-version"));
+        configure.setLocalIp((String) commandLine.getOptionValue("local-ip"));
+        configure.setMacAddr((String) commandLine.getOptionValue("mac-addr"));
         return configure;
     }
 

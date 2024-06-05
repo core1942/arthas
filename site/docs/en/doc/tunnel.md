@@ -135,9 +135,9 @@ id         test_PE3LZO9NA9ENJYTPGL9L
 
 Then visit tunnel-server, you can see a list of all connected applications:
 
-[http://localhost:8080/apps.html](http://localhost:8080/apps.html)
+[http://localhost:8080/sellerInfo.html](http://localhost:8080/sellerInfo.html)
 
-![](/images/tunnel-server-apps.png)
+![](/images/tunnel-server-sellerInfo.png)
 
 Then open the details, you can see a list of all connected agents:
 

@@ -17,6 +17,8 @@ public class AgentInfo {
     private int port;
     private String arthasVersion;
 
+    private AppInfo appInfo;
+
     public ChannelHandlerContext getChannelHandlerContext() {
         return channelHandlerContext;
     }
@@ -49,4 +51,11 @@ public class AgentInfo {
         this.arthasVersion = arthasVersion;
     }
 
+    public AppInfo getAppInfo() {
+        return appInfo;
+    }
+
+    public void setAppInfo(AppInfo appInfo) {
+        this.appInfo = appInfo;
+    }
 }

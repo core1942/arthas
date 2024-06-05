@@ -139,9 +139,9 @@ id         test_PE3LZO9NA9ENJYTPGL9L
 
 然后访问 tunnel-server，可以看到所有连接的应用列表：
 
-[http://localhost:8080/apps.html](http://localhost:8080/apps.html)
+[http://localhost:8080/sellerInfo.html](http://localhost:8080/sellerInfo.html)
 
-![](/images/tunnel-server-apps.png)
+![](/images/tunnel-server-sellerInfo.png)
 
 再打开详情，则可以看到连接的所有 agent 列表：
 

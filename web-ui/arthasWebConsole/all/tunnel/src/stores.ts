@@ -1,5 +1,5 @@
-import App from "./Apps.vue"
+import Seller from "./Stores.vue"
 import { createApp } from "vue"
 import "~/main.css";
-createApp(App)
+createApp(Seller)
   .mount("#app");

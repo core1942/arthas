@@ -48,7 +48,7 @@ import com.taobao.middleware.cli.annotations.Summary;
 @Description("EXAMPLES:\n" + "  java -jar arthas-boot.jar <pid>\n"
                 + "  java -jar arthas-boot.jar --telnet-port 9999 --http-port -1\n"
                 + "  java -jar arthas-boot.jar --username admin --password <password>\n"
-                + "  java -jar arthas-boot.jar --tunnel-server 'ws://192.168.10.11:7777/ws' --app-name demoapp\n"
+                + "  java -jar arthas-boot.jar --tunnel-server 'ws://192.168.10.11:7777/ws' --app-name demoapp --seller-id=0 --seller-name=seller --store-id=0 --store-name=store --app-type=0 --app-version=2025.4.1 --local-ip=192.168.25.235\n"
                 + "  java -jar arthas-boot.jar --tunnel-server 'ws://192.168.10.11:7777/ws' --agent-id bvDOe8XbTM2pQWjF4cfw\n"
                 + "  java -jar arthas-boot.jar --stat-url 'http://192.168.10.11:8080/api/stat'\n"
                 + "  java -jar arthas-boot.jar -c 'sysprop; thread' <pid>\n"
@@ -121,6 +121,14 @@ public class Bootstrap {
     private String agentId;
 
     private String appName;
+    private String sellerId;
+    private String sellerName;
+    private String storeId;
+    private String storeName;
+    private String appType;
+    private String appVersion;
+    private String localIp;
+    private String macAddr;
 
     private String username;
     private String password;
@@ -278,6 +286,53 @@ public class Bootstrap {
     @Description("The app name")
     public void setAppName(String appName) {
         this.appName = appName;
+    }
+
+    @Option(longName = "seller-id")
+    @Description("The seller id")
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    @Option(longName = "seller-name")
+    @Description("The seller name")
+    public void setSellerName(String sellerName) {
+        this.sellerName = sellerName;
+    }
+
+    @Option(longName = "store-id")
+    @Description("The store id")
+    public void setStoreId(String storeId) {
+        this.storeId = storeId;
+    }
+
+    @Option(longName = "store-name")
+    @Description("The store name")
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
+    }
+
+    @Option(longName = "app-type")
+    @Description("The app type")
+    public void setAppType(String appType) {
+        this.appType = appType;
+    }
+
+    @Option(longName = "app-version")
+    @Description("The app version")
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
+
+    @Option(longName = "local-ip")
+    @Description("The local ip")
+    public void setLocalIp(String localIp) {
+        this.localIp = localIp;
+    }
+    @Option(longName = "mac-addr")
+    @Description("The mac address")
+    public void setMacAddr(String macAddr) {
+        this.macAddr = macAddr;
     }
 
     @Option(longName = "username")
@@ -555,6 +610,45 @@ public class Bootstrap {
                 if (bootstrap.getAppName() != null) {
                     attachArgs.add("-app-name");
                     attachArgs.add(bootstrap.getAppName());
+                }
+
+                if (bootstrap.getSellerId() != null) {
+                    attachArgs.add("-seller-id");
+                    attachArgs.add(bootstrap.getSellerId());
+                }
+
+                if (bootstrap.getSellerName() != null) {
+                    attachArgs.add("-seller-name");
+                    attachArgs.add(bootstrap.getSellerName());
+                }
+
+                if (bootstrap.getStoreId() != null) {
+                    attachArgs.add("-store-id");
+                    attachArgs.add(bootstrap.getStoreId());
+                }
+
+                if (bootstrap.getStoreName() != null) {
+                    attachArgs.add("-store-name");
+                    attachArgs.add(bootstrap.getStoreName());
+                }
+
+                if (bootstrap.getAppType() != null) {
+                    attachArgs.add("-app-type");
+                    attachArgs.add(bootstrap.getAppType());
+                }
+
+                if (bootstrap.getAppVersion() != null) {
+                    attachArgs.add("-app-version");
+                    attachArgs.add(bootstrap.getAppVersion());
+                }
+
+                if (bootstrap.getLocalIp() != null) {
+                    attachArgs.add("-local-ip");
+                    attachArgs.add(bootstrap.getLocalIp());
+                }
+                if (bootstrap.getMacAddr() != null) {
+                    attachArgs.add("-mac-addr");
+                    attachArgs.add(bootstrap.getMacAddr());
                 }
 
                 if (bootstrap.getUsername() != null) {
@@ -894,5 +988,37 @@ public class Bootstrap {
 
     public String getDisabledCommands() {
         return disabledCommands;
+    }
+
+    public String getSellerId() {
+        return sellerId;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public String getStoreId() {
+        return storeId;
+    }
+
+    public String getStoreName() {
+        return storeName;
+    }
+
+    public String getAppType() {
+        return appType;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public String getMacAddr() {
+        return macAddr;
     }
 }

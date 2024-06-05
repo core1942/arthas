@@ -5,6 +5,7 @@ import com.alibaba.arthas.tunnel.common.MethodConstants;
 import com.alibaba.arthas.tunnel.common.SimpleHttpResponse;
 import com.alibaba.arthas.tunnel.common.URIConstans;
 import com.alibaba.arthas.tunnel.server.utils.HttpUtils;
+import com.google.common.collect.ImmutableSortedMap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -32,10 +33,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -231,46 +229,11 @@ public class TunnelSocketFrameHandler extends SimpleChannelInboundHandler<WebSoc
     private void agentRegister(ChannelHandlerContext ctx, HandshakeComplete handshake, String requestUri) throws URISyntaxException {
         QueryStringDecoder queryDecoder = new QueryStringDecoder(requestUri);
         Map<String, List<String>> parameters = queryDecoder.parameters();
-
-        String appName = null;
-        List<String> appNameList = parameters.get(URIConstans.APP_NAME);
-        if (appNameList != null && !appNameList.isEmpty()) {
-            appName = appNameList.get(0);
-        }
-
-        // generate a random agent id
-        String id = null;
-        if (appName != null) {
-            // 如果有传 app name，则生成带 app name前缀的id，方便管理
-            id = appName + "_" + RandomStringUtils.random(20, true, true).toUpperCase();
-        } else {
-            id = RandomStringUtils.random(20, true, true).toUpperCase();
-        }
-        // agent传过来，则优先用 agent的
-        List<String> idList = parameters.get(URIConstans.ID);
-        if (idList != null && !idList.isEmpty()) {
-            id = idList.get(0);
-        }
-
-        String arthasVersion = null;
-        List<String> arthasVersionList = parameters.get(URIConstans.ARTHAS_VERSION);
-        if (arthasVersionList != null && !arthasVersionList.isEmpty()) {
-            arthasVersion = arthasVersionList.get(0);
-        }
-
-        final String finalId = id;
-
-        // URI responseUri = new URI("response", null, "/", "method=" + MethodConstants.AGENT_REGISTER + "&id=" + id, null);
-        URI responseUri = UriComponentsBuilder.newInstance().scheme(URIConstans.RESPONSE).path("/")
-                .queryParam(URIConstans.METHOD, MethodConstants.AGENT_REGISTER).queryParam(URIConstans.ID, id).build()
-                .encode().toUri();
-
         AgentInfo info = new AgentInfo();
-
+        AppInfo appInfo = new AppInfo(parameters);
         // 前面可能有nginx代理
         HttpHeaders headers = handshake.requestHeaders();
         String host = HttpUtils.findClientIP(headers);
-
         if (host == null) {
             SocketAddress remoteAddress = ctx.channel().remoteAddress();
             if (remoteAddress instanceof InetSocketAddress) {
@@ -285,22 +248,44 @@ public class TunnelSocketFrameHandler extends SimpleChannelInboundHandler<WebSoc
                 info.setPort(port);
             }
         }
+        String id = getParam(parameters, URIConstans.ID);;
+        // generate a random agent id
+        if (id == null) {
+            if (appInfo.getMacAddr() != null) {
+                id = appInfo.getSellerId() + ":" + appInfo.getStoreId() + ":" + appInfo.getMacAddr();
+            } else {
+                // 如果有传 app name，则生成带 app name前缀的id，方便管理
+                id = RandomStringUtils.random(20, true, true).toUpperCase();
+            }
+        }
+        String arthasVersion = getParam(parameters, URIConstans.ARTHAS_VERSION);
+        final String finalId = id;
+
+        // URI responseUri = new URI("response", null, "/", "method=" + MethodConstants.AGENT_REGISTER + "&id=" + id, null);
+        URI responseUri = UriComponentsBuilder.newInstance()
+                .scheme(URIConstans.RESPONSE)
+                .path("/")
+                .queryParam(URIConstans.METHOD, MethodConstants.AGENT_REGISTER)
+                .queryParam(URIConstans.ID, id)
+                .build()
+                .encode().toUri();
 
         info.setChannelHandlerContext(ctx);
         if (arthasVersion != null) {
             info.setArthasVersion(arthasVersion);
         }
-
+        info.setAppInfo(appInfo);
         tunnelServer.addAgent(id, info);
-        ctx.channel().closeFuture().addListener(new GenericFutureListener<Future<? super Void>>() {
-            @Override
-            public void operationComplete(Future<? super Void> future) throws Exception {
-                tunnelServer.removeAgent(finalId);
-            }
-
-        });
-
+        ctx.channel().closeFuture().addListener(future -> tunnelServer.removeAgent(finalId));
         ctx.channel().writeAndFlush(new TextWebSocketFrame(responseUri.toString()));
+    }
+
+    private static String getParam(Map<String, List<String>> parameters, String appName) {
+        List<String> appNameList = parameters.get(appName);
+        if (appNameList != null && !appNameList.isEmpty()) {
+            return appNameList.get(0);
+        }
+        return null;
     }
 
     private void openTunnel(ChannelHandlerContext ctx, String clientConnectionId) {
